@@ -12,8 +12,19 @@
   $page_name = "create_account";
   $page_title = "Create Account";
 
+  /* Quick Paths */
+  include_once (realpath(dirname(__FILE__).'/php/path.php'));
+
   /* Start The Session */
   session_start(); 
+
+  /* Values typed before an error, so the user doesn't have to retype them */
+  $old_input = isset($_SESSION['old_input']) ? $_SESSION['old_input'] : array();
+  unset($_SESSION['old_input']);
+  function old_value($field) {
+    global $old_input;
+    return isset($old_input[$field]) ? htmlspecialchars($old_input[$field]) : '';
+  }
 
 ?>
 <!doctype html>
@@ -31,46 +42,34 @@
             <p class="text-body-secondary mb-0">Start logging your workouts</p>
           </div>
           <form action="./php/create_account.php" method="post">
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="first_name" placeholder="Enter First Name" name="first_name" required>
+            <div class="row g-2 mb-3">
+              <div class="col">
+                <label for="first_name" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="<?php echo old_value('first_name'); ?>" autocomplete="given-name" required>
+              </div>
+              <div class="col">
+                <label for="last_name" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="<?php echo old_value('last_name'); ?>" autocomplete="family-name" required>
+              </div>
             </div>
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="last_name" placeholder="Enter Last Name" name="last_name" required>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" name="email" value="<?php echo old_value('email'); ?>" autocomplete="email" required>
             </div>
-            <div class="input-group mb-3">
-              <input type="email" class="form-control" id="email" placeholder="Enter Email Address" name="email" required>
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" name="username" value="<?php echo old_value('username'); ?>" autocomplete="username" required>
             </div>
-            <div class="input-group mb-3">
-              <input type="tel" class="form-control" id="phone" placeholder="Enter Phone Number" name="phone" required>
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input type="password" class="form-control" id="password" name="password" minlength="8" autocomplete="new-password" required>
+              <div class="form-text">At least 8 characters.</div>
             </div>
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="username" aria-describedby="username" placeholder="Enter username" name="username" required>
+            <div class="mb-3">
+              <label for="confirm_password" class="form-label">Confirm Password</label>
+              <input type="password" class="form-control" id="confirm_password" name="confirm_password" minlength="8" autocomplete="new-password" required>
             </div>
-            <div class="input-group mb-3">
-              <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password" required>
-            </div>
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="street" placeholder="Enter Street Address" name="street" >
-            </div>
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="street_additional" placeholder="Enter Street Additional" name="street_additional">
-            </div>
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="city" placeholder="Enter City" name="city" >
-            </div>
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="state" placeholder="Enter State" name="state" >
-            </div>
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="zip" placeholder="Enter Zip Code" name="zip" >
-            </div>
-            <?php
-              /* Error Message */
-              if (isset($error)) {
-                // uses bootstrap alert style for error messages
-                echo '<div class="alert alert-danger" role="alert">' . $error . '</div>';
-              }
-            ?>
+            <?php include_once (ROOT_PATH . '/php/error_rprt.php'); ?>
             <button type="submit" class="btn btn-primary w-100">Create Account</button>
           </form>
           <hr />

@@ -12,6 +12,11 @@
     echo '<div class="alert alert-danger" role="alert">' . $_SESSION['error'] . '</div>';
     unset($_SESSION['error']); // only show once
   }
+  /* Success Report */
+  if (isset($_SESSION['success'])) {
+    echo '<div class="alert alert-success" role="alert">' . $_SESSION['success'] . '</div>';
+    unset($_SESSION['success']); // only show once
+  }
   /* Message Report */
   if (isset($message)) {
     // uses bootstrap alert style for error messages
