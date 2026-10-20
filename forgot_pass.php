@@ -8,6 +8,10 @@
  * @version   1.0
  */
 
+  /* Page Name */
+  $page_name = "forgot_pass";
+  $page_title = "Account Recovery";
+
   /* Start The Session */
   session_start(); 
 
@@ -20,9 +24,12 @@
   <body>
     <?php include_once "./include/header.php"; ?>
     <main role="main" class="container">
-      <div class="row justify-content-sm-center">
-        <div class="col-sm-4">
-          <h1>Account Recovery</h1>
+      <div class="app-card auth-card">
+          <div class="text-center mb-4">
+            <i class="bi bi-key auth-icon"></i>
+            <h1 class="h3 mt-2">Account Recovery</h1>
+            <p class="text-body-secondary mb-0">Enter the email on your account</p>
+          </div>
           <form action="./db/recovery.php" method="post">
             <div class="input-group mb-3">
               <input type="email" class="form-control" id="email" aria-describedby="email" placeholder="Enter Email" name="email" required>
@@ -34,15 +41,14 @@
                 echo '<div class="alert alert-danger" role="alert">' . $error . '</div>';
               }
             ?>
-            <button type="submit" class="btn btn-primary">Next</button>
+            <button type="submit" class="btn btn-primary w-100">Next</button>
           </form>
           <hr />
-          <p class="text-center">
+          <p class="text-center mb-0">
             <small>
               <a href="./create_account.php">Create An Account</a> | <a href="./">Login</a>
             </small>
           </p>
-        </div>
       </div>
     </main>
     <?php include_once "./include/footer.php"; ?>

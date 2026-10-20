@@ -20,6 +20,9 @@ ini_set('display_errors', 1); // set to 1 to display errors, 0 to hide them
 // End of Error Reporting
 /* --------------------------------------------------------------------- */
 
+/* Timezone for dates and times shown in the app (XAMPP defaults to Europe/Berlin) */
+date_default_timezone_set('America/New_York');
+
 DEFINE('DB_HOST', "localhost");
 DEFINE('DB_USER', "root");
 DEFINE('DB_PASSWORD', ""); //Note: this should be your root password

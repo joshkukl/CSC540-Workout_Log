@@ -71,6 +71,7 @@ if (isset($_POST['submit'])) {
       }
   } else {
     // Invalid login
+    session_start();
     $_SESSION['message'] = "Username or Password did not match!";
     // Redirect to logout
     header("location: " . SRC_PATH . "/logout.php"); 

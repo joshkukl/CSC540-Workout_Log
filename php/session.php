@@ -44,12 +44,15 @@
   // You can add more session checks as needed
    if(!isset($user_id)){
     header("location: " . BASE_URL . "/failed.html");
+    exit();
   }
   if(!isset($first_name)){
     header("location: " . BASE_URL . "/failed.html");
+    exit();
   }
   if(!isset($user_type)){
     header("location: " . BASE_URL . "/failed.html");
+    exit();
   }
 
   $select_user->close();

@@ -1,5 +1,5 @@
 /*
-* Custom Styles for CSC235 Login System
+* Custom Styles for CSC540 Workout Log
 * Author: Joshua Connor
 * Date: 2026-02-24
 * Version: 1.0
@@ -27,6 +27,15 @@
     "YTUC" 712;
 } */
 
+/* App colors - change these to restyle the whole site */
+:root {
+  --app-accent: #e8590c;
+  --app-accent-dark: #c2410c;
+  --app-accent-soft: #fff1e8;
+  --app-dark: #1f2933;
+  --app-bg: #f4f5f7;
+}
+
 html,
 body {
   font-family: "Roboto Flex", sans-serif;
@@ -35,5 +44,155 @@ body {
   font-style: normal;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4;
+  background-color: var(--app-bg);
+}
+
+/* Keeps the footer at the bottom without covering page content */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;
+  padding-bottom: 2rem;
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+  font-weight: 600;
+}
+
+/* Bootstrap primary buttons use the app accent */
+.btn-primary {
+  --bs-btn-bg: var(--app-accent);
+  --bs-btn-border-color: var(--app-accent);
+  --bs-btn-hover-bg: var(--app-accent-dark);
+  --bs-btn-hover-border-color: var(--app-accent-dark);
+  --bs-btn-active-bg: var(--app-accent-dark);
+  --bs-btn-active-border-color: var(--app-accent-dark);
+  --bs-btn-disabled-bg: var(--app-accent);
+  --bs-btn-disabled-border-color: var(--app-accent);
+}
+
+a {
+  color: var(--app-accent-dark);
+}
+
+.form-control:focus {
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 0.2rem rgba(232, 89, 12, 0.2);
+}
+
+/* Navigation */
+.app-navbar {
+  background-color: var(--app-dark);
+}
+
+.app-navbar .navbar-brand,
+.app-navbar .navbar-text,
+.app-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.app-navbar .navbar-brand .bi {
+  color: var(--app-accent);
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link.active {
+  color: #fff;
+}
+
+.app-navbar .nav-link.disabled {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.app-navbar .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.app-navbar .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+/* Cards */
+.app-card {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Login / create account / recovery forms */
+.auth-card {
+  max-width: 420px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.auth-card .auth-icon {
+  font-size: 2.5rem;
+  color: var(--app-accent);
+}
+
+/* Dashboard */
+.dashboard-hero {
+  background: linear-gradient(135deg, var(--app-dark), #364152);
+  color: #fff;
+  border-radius: 0.75rem;
+  padding: 2rem;
+}
+
+.dashboard-hero .lead {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.action-card {
+  height: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.action-card .action-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background-color: var(--app-accent-soft);
+  color: var(--app-accent);
+  margin-bottom: 1rem;
+}
+
+.action-card p {
+  flex-grow: 1;
+}
+
+.stat-card {
+  padding: 1.25rem;
+}
+
+.stat-card .stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.stat-card .stat-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.empty-state {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.empty-state .bi {
+  font-size: 2.5rem;
+  color: #cbd5e1;
 }

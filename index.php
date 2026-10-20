@@ -26,27 +26,31 @@
   <body>
     <?php include_once "./include/header.php"; ?>
     <main role="main" class="container">
-      <div class="row justify-content-sm-center">
-        <div class="col-sm-4">
-          <h1>Login</h1>
-          <form action="./php/authenticate.php" method="post">
-            <div class="input-group mb-3">
-              <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="username" placeholder="Enter username" name="username" required>
-            </div>
-            <div class="input-group mb-3">
-              <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Enter Password" name="password" required>
-            </div>
-            
-            <?php include_once (ROOT_PATH . '/db/error_rprt.php'); ?>
-            <button type="submit" class="btn btn-primary">Log In</button>
-          </form>
-          <hr />
-          <p class="text-center">
-              <small>
-                <a href="./create_account.php">Create An Account</a> | <a href="./forgot_pass.php">Forgot Password</a>
-              </small>
-          </p>
+      <div class="app-card auth-card">
+        <div class="text-center mb-4">
+          <i class="bi bi-activity auth-icon"></i>
+          <h1 class="h3 mt-2">Welcome Back</h1>
+          <p class="text-body-secondary mb-0">Log in to track your workouts</p>
         </div>
+        <form action="./php/authenticate.php" method="post">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" autocomplete="username" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" autocomplete="current-password" required>
+          </div>
+
+          <?php include_once (ROOT_PATH . '/php/error_rprt.php'); ?>
+          <button type="submit" class="btn btn-primary w-100">Log In</button>
+        </form>
+        <hr />
+        <p class="text-center mb-0">
+            <small>
+              <a href="./create_account.php">Create An Account</a> | <a href="./forgot_pass.php">Forgot Password</a>
+            </small>
+        </p>
       </div>
     </main>
     <?php include_once "./include/footer.php"; ?>

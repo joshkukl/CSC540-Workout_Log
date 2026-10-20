@@ -8,6 +8,10 @@
  * @version   1.0
  */
 
+  /* Page Name */
+  $page_name = "create_account";
+  $page_title = "Create Account";
+
   /* Start The Session */
   session_start(); 
 
@@ -20,9 +24,12 @@
   <body>
     <?php include_once "./include/header.php"; ?>
     <main role="main" class="container">
-      <div class="row justify-content-sm-center">
-        <div class="col-sm-4">
-          <h1>Create Account</h1>
+      <div class="app-card auth-card">
+          <div class="text-center mb-4">
+            <i class="bi bi-person-plus auth-icon"></i>
+            <h1 class="h3 mt-2">Create Account</h1>
+            <p class="text-body-secondary mb-0">Start logging your workouts</p>
+          </div>
           <form action="./php/create_account.php" method="post">
             <div class="input-group mb-3">
               <input type="text" class="form-control" id="first_name" placeholder="Enter First Name" name="first_name" required>
@@ -64,15 +71,14 @@
                 echo '<div class="alert alert-danger" role="alert">' . $error . '</div>';
               }
             ?>
-            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="submit" class="btn btn-primary w-100">Create Account</button>
           </form>
           <hr />
-          <p class="text-center">
+          <p class="text-center mb-0">
               <small>
                 <a href="./index.php">Login</a> | <a href="./forgot_pass.php">Forgot Password</a>
               </small>
           </p>
-        </div>
       </div>
     </main>
     <?php include_once "./include/footer.php"; ?>

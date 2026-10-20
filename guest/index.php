@@ -15,6 +15,7 @@
 
   /* Page Name */
   $page_name = "guest";
+  $page_title = "Guest";
 
 ?>
 <!doctype html>
@@ -31,7 +32,8 @@
   <div class="row align-items-center">
     
     <div class="col">
-      <h1>Welcome Guest <?php echo $user_name; ?></h1>
+      <h1>Welcome, <?php echo htmlspecialchars($_SESSION['user_first']); ?></h1>
+      <p class="lead">You are logged in as a guest.</p>
     </div>
     
   </div>

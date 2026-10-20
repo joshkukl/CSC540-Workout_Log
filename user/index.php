@@ -1,131 +1,122 @@
 <?php
 /**
- * User Index Page
+ * User Dashboard Page
  *
  * @author    Joshua Connor <connorj4@southernct.edu>
- * @copyright 2026 
+ * @copyright 2026
  * @date      2026-02-24
- * @version   1.0
- * new update: 2026-06-01
+ * @version   1.1
+ * new update: 2026-10-20 - workout dashboard
  */
-error_reporting(E_ALL); // Report all errors
-ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
-
-  /* Quick Paths */
-  /* note the 2 after __FILE__, because it's 2 directories deep */
-  include_once (realpath(dirname(__FILE__, 2).'/php/session.php')); // Session will be included in header.php
-  include_once (realpath(dirname(__FILE__, 2).'/php/path.php')); // Path will be included in header.php
-  // Session will be included in header.php
-
-  /* Page Name */
-  $page_name = "user";
-
-?>
-<?php
-//======================================================================
-// USER DASHBOARD PAGE
-//======================================================================
 
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
 
   /* Quick Paths */
   /* note the 2 after __FILE__, because it's 2 directories deep */
-  include_once (realpath(dirname(__FILE__, 2).'/php/session.php')); // Session will be included in header.php
-  include_once (realpath(dirname(__FILE__, 2).'/php/path.php')); // Path will be included in header.php
-  // Session will be included in header.php
-  
+  include_once (realpath(dirname(__FILE__, 2).'/php/session.php'));
+  include_once (realpath(dirname(__FILE__, 2).'/php/path.php'));
+
   /* Check Role */
   include_once (ROOT_SRC_PATH .'/check_user.php'); // Check user role and redirect if not authorized
 
-  $user_check = $_SESSION['login_user'];
-  // Check user and get roll session from database
-
   /* Page Name */
-  $page_name = "admin"; // Set page name for active link in header
+  $page_name = "user"; // Set page name for active link in header
+  $page_title = "Dashboard";
+
+  /* Greeting based on time of day */
+  $hour = (int) date('G');
+  if ($hour < 12) {
+    $greeting = "Good morning";
+  } elseif ($hour < 18) {
+    $greeting = "Good afternoon";
+  } else {
+    $greeting = "Good evening";
+  }
 
 ?>
 <!doctype html>
 <html lang="en">
   <head>
-  <?php include_once (ROOT_PATH . '/include/head.php'); // Include head.php ?>
+  <?php include_once (ROOT_PATH . '/include/head.php'); ?>
   </head>
   <body class="<?php echo $page_name; ?>">
 
-  <?php include_once (ROOT_PATH . '/include/header.php'); // Include header.php ?>
+  <?php include_once (ROOT_PATH . '/include/header.php'); ?>
     <main role="main" class="container">
 
-    <div class="container text-center">
-  <div class="row align-items-center">
-    
-    <div class="col">
-      <div class="mb-6">
-      <h1>Welcome <?php echo $_SESSION['user_first'] ?></h1>
-      <p class="lead">This is the <?php echo $_SESSION['user_type'] ?> dashboard.</p>
-      <p>Only users with the  role can access this page.</p>
-      </div>
-      <hr class="mb-4">
+      <?php /* Welcome Banner */ ?>
+      <section class="dashboard-hero mb-4">
+        <p class="text-uppercase small mb-1 opacity-75"><?php echo date('l, F j'); ?></p>
+        <h1 class="mb-2"><?php echo $greeting . ', ' . htmlspecialchars($_SESSION['user_first']); ?></h1>
+        <p class="lead mb-0">Ready to train? Log today's workout or look back at your progress.</p>
+      </section>
+
+      <?php /* Main Actions */ ?>
+      <section class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="app-card action-card">
+            <div class="action-icon"><i class="bi bi-plus-lg"></i></div>
+            <h2 class="h4">Log a Workout <span class="badge text-bg-secondary fs-6 fw-normal align-middle">Coming soon</span></h2>
+            <p class="text-body-secondary">Record your exercises, sets, reps and weight for today's session.</p>
+            <div>
+              <?php /* TODO: link to log_workout.php once it is built */ ?>
+              <button type="button" class="btn btn-primary" disabled>
+                <i class="bi bi-pencil-square"></i> Start Logging
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="app-card action-card">
+            <div class="action-icon"><i class="bi bi-clock-history"></i></div>
+            <h2 class="h4">Workout History <span class="badge text-bg-secondary fs-6 fw-normal align-middle">Coming soon</span></h2>
+            <p class="text-body-secondary">Browse past workouts and see how your training has changed over time.</p>
+            <div>
+              <?php /* TODO: link to history.php once it is built */ ?>
+              <button type="button" class="btn btn-outline-secondary" disabled>
+                <i class="bi bi-list-ul"></i> View History
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <?php /* Weekly Summary - values will come from the workout tables once they exist */ ?>
       <section class="mb-4">
-      <h2>User Information</h2>
-      <table class="table">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">First</th>
-      <th scope="col">Last</th>
-      <th scope="col">Email</th>
-      <th scope="col">Username</th>
-      <th scope="col">Role</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php
-      include_once (ROOT_PATH . '/php/config.php');
+        <h2 class="h5 mb-3">This Week</h2>
+        <div class="row g-3">
+          <div class="col-sm-4">
+            <div class="app-card stat-card">
+              <div class="stat-label"><i class="bi bi-calendar-check"></i> Workouts</div>
+              <div class="stat-value">&mdash;</div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="app-card stat-card">
+              <div class="stat-label"><i class="bi bi-stopwatch"></i> Total Time</div>
+              <div class="stat-value">&mdash;</div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="app-card stat-card">
+              <div class="stat-label"><i class="bi bi-fire"></i> Day Streak</div>
+              <div class="stat-value">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      $result = $db_connection->query(
-        "SELECT 
-            u.user_id,
-            c.first_name,
-            c.last_name,
-            c.email,
-            cr.username,
-            r.role_type
-        FROM Users u
-        INNER JOIN Contacts c ON u.contact_id = c.contact_id
-        INNER JOIN Credentials cr ON u.user_id = cr.user_id
-        INNER JOIN Roles r ON u.role_id = r.role_id
-        WHERE cr.username = '$user_check'
-        ");
+      <?php /* Recent Workouts */ ?>
+      <section>
+        <h2 class="h5 mb-3">Recent Workouts</h2>
+        <div class="app-card empty-state">
+          <i class="bi bi-journal-text d-block mb-2"></i>
+          <p class="mb-0">No workouts logged yet. Your recent sessions will show up here.</p>
+        </div>
+      </section>
 
-      if ($result->num_rows > 0) {
-        // output data of each row
-        while($row = $result->fetch_assoc()) {
-          echo "<tr>";
-          echo "<th scope='row'>" . $row["user_id"] . "</th>";
-          echo "<td>" . htmlspecialchars($row["first_name"]) . "</td>";
-          echo "<td>" . htmlspecialchars($row["last_name"]) . "</td>";
-          echo "<td>" . htmlspecialchars($row["email"]) . "</td>";
-          echo "<td>" . htmlspecialchars($row["username"]) . "</td>";
-          echo "<td>" . htmlspecialchars($row["role_type"]) . "</td>";
-          echo "</tr>";
-        }
-      } else {
-        echo "<tr><td colspan='6'>No users found</td></tr>";
-      }
-      $db_connection->close();
-    ?>
-
-  </tbody>
-</table>
-</section>
-      
-    </div>
-    
-  </div>
-</div>  
-       
     </main>
     <?php include_once (ROOT_PATH . '/include/footer.php'); ?>
   </body>
 </html>
-
