@@ -1,28 +1,91 @@
-# CSC235 Login
-A basic database web application that just focuses on a simple login. This is a starting point for building a web application using mariaDB on XAMPP. This is intended to be a learning tool only and is not intended for production use. Students are free to use this for ONLY school projects.
+# CSC540 Workout Log
 
-## Stack
-The project was built using [xampp] (https://www.apachefriends.org/index.html)
-XAMPP should be installed locally in order to run this program.
-- Appache
-- MariaDB
-- PHP
-- Pearl
-  
-## INSTRUCTIONS
-These files must be hosted within a system that supports lamp stacks, preferably install this into a XAMPP and run locally. This project is not built to scale for a production based website, it intention is to be used as a teaching tool.
+A web app for logging workouts and tracking training history, built for CSC 540. Users log in, land on a personal dashboard, and (once those pages are built) can record workouts and look back through past sessions.
 
-## BOOTSTRAP
-This is a popular HTML CSS, and JS library included in this project. To make updates simpler and faster, see the documentation for how to use it.
-[bootstrap docs] (https://getbootstrap.com/docs/5.3/getting-started/introduction/)
+It runs on a local XAMPP stack: PHP, MariaDB, and Apache, with Bootstrap 5.3 for the front end.
 
-## AUTO INSTALL DB
-To create the database you will run the start.php.
-For example: http://localhost/csc540_login/db/start.php
+## Project Status
 
-Notes: be sure to update the username and password on this file to whatever your using.
+| Feature | Status |
+|---|---|
+| Login, logout, and account roles (admin, user, guest) | Done |
+| User dashboard | Done (layout and placeholders) |
+| Log a workout | Not started |
+| Workout history | Not started |
+| Weekly stats on the dashboard | Waiting on workout tables |
+| Forgot password | Not started (form points to a page that doesn't exist yet) |
 
-## UPDATES TO YOUR LOCAL ENVIRONMENT
-start.php - update the connection to your database
-config.php - update the connection to your database
+## Setup
 
+1. **Install XAMPP** from [apachefriends.org](https://www.apachefriends.org/index.html).
+2. **Clone the repo into XAMPP's web folder** so the folder name stays `CSC540-Workout_Log`:
+   ```bash
+   cd /opt/lampp/htdocs          # Windows: C:\xampp\htdocs
+   git clone https://github.com/joshkukl/CSC540-Workout_Log.git
+   ```
+   On Linux, don't clone with `sudo`, or the files will be owned by root and git will refuse to work in the folder. If `htdocs` isn't writable, create the empty folder with `sudo mkdir`, `sudo chown` it to yourself, then clone into it.
+3. **Start Apache and MySQL** from the XAMPP control panel, or on Linux:
+   ```bash
+   sudo /opt/lampp/lampp start
+   ```
+4. **Create the database** by visiting:
+   http://localhost/CSC540-Workout_Log/php/start.php
+
+   This creates a database called `login_db` and fills it with the test accounts below.
+   **Running it again deletes every table in `login_db` and starts over**, so only run it for a fresh install.
+5. **Open the app** at http://localhost/CSC540-Workout_Log/
+
+If your MySQL root user has a password, set it in both `php/config.php` and `php/start.php`.
+
+## Test Accounts
+
+| Username | Password | Role | Lands on |
+|---|---|---|---|
+| `johndoe` | `SCSU2024` | Administrator | `/admin` (list of all users) |
+| `janesmith` | `SCSU2025` | User | `/user` (workout dashboard) |
+| `charliebrown` | `SCSU2026` | Guest | `/guest` |
+
+Use `janesmith` to see the workout dashboard.
+
+## Project Structure
+
+```
+CSC540-Workout_Log/
+├── index.php            Login page
+├── create_account.php   Sign-up form
+├── forgot_pass.php      Account recovery form (not working yet)
+├── failed.html          Shown when a session is missing, then redirects to login
+├── template.php         Blank starting point for new pages
+├── admin/               Administrator dashboard
+├── user/                Workout dashboard for regular users
+├── guest/               Guest landing page
+├── include/             Shared page parts: head, nav bar, footer
+├── php/                 Back end: config, login, sessions, role checks, DB setup
+├── css/style.css        App styles and colours
+├── js/main.js           App JavaScript
+└── img/                 Images and favicon
+```
+
+## Adding a Page
+
+Copy the structure of `user/index.php`:
+
+1. Include `php/session.php` and `php/path.php` at the top.
+2. Include the role check for who should see the page, e.g. `php/check_user.php`.
+3. Set `$page_name` and `$page_title`.
+4. Use `include/head.php`, `include/header.php`, and `include/footer.php` for the shared layout.
+
+Use `BASE_URL` (or `SRC_PATH` for files in `php/`) when linking to other pages or files, so links work from any folder.
+
+If you rename the project folder, update `$directory` in `php/path.php` to match.
+
+## Configuration
+
+- **Database connection:** `php/config.php` (and `php/start.php` for the setup script)
+- **Project folder name:** `php/path.php`
+- **Timezone:** `php/config.php`, currently `America/New_York`
+- **Colours:** the variables at the top of `css/style.css`
+
+## Credits
+
+Built on a login template by Joshua Connor (connorj4@southernct.edu) for Southern Connecticut State University coursework. The template is meant as a learning tool for school projects only, not for production use.
