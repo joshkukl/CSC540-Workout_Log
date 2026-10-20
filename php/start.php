@@ -250,7 +250,7 @@ $insert_credentials->close();
 /* Status Display */
 echo nl2br("The database tables were successfully populated.\r\n");
 /* Return to homepage after 5 seconds */
-header( "refresh:10;url=/csc235_login" );
+header( "refresh:10;url=/CSC540-Workout_Log" );
 
 /* ALWAYS CLOSE THE DB CONNECTION */
 $db_connection->close();

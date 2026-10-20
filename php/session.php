@@ -43,13 +43,13 @@
   // or if there is no session
   // You can add more session checks as needed
    if(!isset($user_id)){
-    header("location: " . BASE_URL . "failed.html");
+    header("location: " . BASE_URL . "/failed.html");
   }
   if(!isset($first_name)){
-    header("location: " . BASE_URL . "failed.html");
+    header("location: " . BASE_URL . "/failed.html");
   }
   if(!isset($user_type)){
-    header("location: " . BASE_URL . "failed.html");
+    header("location: " . BASE_URL . "/failed.html");
   }
 
   $select_user->close();
