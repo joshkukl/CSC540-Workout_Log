@@ -10,7 +10,7 @@ It runs on a local XAMPP stack: PHP, MariaDB, and Apache, with Bootstrap 5.3 for
 |---|---|
 | Login, logout, and account roles (admin, user, guest) | Done |
 | User dashboard | Done (layout and placeholders) |
-| Log a workout | Not started |
+| Log a workout (create with your own type and bodyweight, add sets, start from a past workout) | Done |
 | Workout history | Not started |
 | Weekly stats on the dashboard | Waiting on workout tables |
 | Forgot password | Not started (form points to a page that doesn't exist yet) |

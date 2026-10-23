@@ -163,18 +163,32 @@ $create_exercise_muscle_map = $db_connection->prepare(
 $create_exercise_muscle_map->execute();
 $create_exercise_muscle_map->close();
 
-/* Workouts - one row per gym session */
+/* Workout Types - each user's own names for their splits (Push, Pull, Legs, Cardio...) */
+$create_workout_types = $db_connection->prepare(
+	"CREATE OR REPLACE TABLE Workout_Types(
+        type_id int NOT NULL AUTO_INCREMENT,
+        user_id int NOT NULL,
+        type_name varchar(50) NOT NULL,
+        PRIMARY KEY(type_id),
+        UNIQUE(user_id, type_name),
+        FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE);");
+$create_workout_types->execute();
+$create_workout_types->close();
+
+/* Workouts - one row per gym session, bodyweight is optional */
 $create_workouts = $db_connection->prepare(
 	"CREATE OR REPLACE TABLE Workouts(
         workout_id int NOT NULL AUTO_INCREMENT,
         user_id int NOT NULL,
+        type_id int NOT NULL,
         workout_date date NOT NULL,
         duration_minutes int,
         facility_name varchar(255),
-        workout_type ENUM('Cardio', 'Strength', 'Mixed') NOT NULL,
+        bodyweight_lbs decimal(5,1),
         notes text,
         PRIMARY KEY(workout_id),
-        FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE);");
+        FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+        FOREIGN KEY(type_id) REFERENCES Workout_Types(type_id));");
 $create_workouts->execute();
 $create_workouts->close();
 
@@ -402,23 +416,36 @@ foreach ($exercise_muscles as $exercise_id => $group_ids) {
 }
 $insert_map->close();
 
+/* Sample Workout Types for janesmith (user_id 2) */
+$insert_type = $db_connection->prepare(
+	"INSERT INTO Workout_Types
+		(type_id, user_id, type_name) VALUES(?,?,?);");
+$insert_type->bind_param("iis", $type_id, $user_id, $type_name);
+$types = array(1 => "Upper", 2 => "Lower", 3 => "Cardio", 4 => "Full Body");
+$user_id = 2;
+foreach ($types as $type_id => $type_name) {
+	$insert_type->execute();
+}
+$insert_type->close();
+
 /* Sample Workouts for janesmith (user_id 2) */
 /* Dates are relative to today so the dashboard always has recent data */
 $insert_workout = $db_connection->prepare(
 	"INSERT INTO Workouts
-		(workout_id, user_id, workout_date, duration_minutes, facility_name, workout_type, notes) VALUES(?,?,?,?,?,?,?);");
-$insert_workout->bind_param("iisisss", $workout_id, $user_id, $workout_date, $duration_minutes, $facility_name, $workout_type, $notes);
+		(workout_id, user_id, type_id, workout_date, duration_minutes, facility_name, bodyweight_lbs, notes) VALUES(?,?,?,?,?,?,?,?);");
+$insert_workout->bind_param("iiisisds", $workout_id, $user_id, $type_id, $workout_date, $duration_minutes, $facility_name, $bodyweight_lbs, $notes);
+/* days ago, type_id, duration, facility, bodyweight, notes */
 $workouts = array(
-	1 => array("-12 days", 60, "Campus Rec Center", "Strength", "Upper body day"),
-	2 => array("-10 days", 30, "Campus Rec Center", "Cardio", null),
-	3 => array("-8 days", 55, "Campus Rec Center", "Strength", "Legs felt heavy"),
-	4 => array("-5 days", 65, "Campus Rec Center", "Strength", "New bench PR"),
-	5 => array("-3 days", 45, "Downtown Gym", "Mixed", null),
-	6 => array("-1 day", 50, "Campus Rec Center", "Strength", "Deadlift focus"),
+	1 => array("-12 days", 1, 60, "Campus Rec Center", 148.6, "Upper body day"),
+	2 => array("-10 days", 3, 30, "Campus Rec Center", null, null),
+	3 => array("-8 days", 2, 55, "Campus Rec Center", 148.2, "Legs felt heavy"),
+	4 => array("-5 days", 1, 65, "Campus Rec Center", 147.8, "New bench PR"),
+	5 => array("-3 days", 4, 45, "Downtown Gym", null, null),
+	6 => array("-1 day", 2, 50, "Campus Rec Center", 147.4, "Deadlift focus"),
 );
 $user_id = 2;
 foreach ($workouts as $workout_id => $row) {
-	list($days_ago, $duration_minutes, $facility_name, $workout_type, $notes) = $row;
+	list($days_ago, $type_id, $duration_minutes, $facility_name, $bodyweight_lbs, $notes) = $row;
 	$workout_date = date("Y-m-d", strtotime($days_ago));
 	$insert_workout->execute();
 }

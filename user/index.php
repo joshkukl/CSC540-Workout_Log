@@ -57,13 +57,12 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
         <div class="col-md-6">
           <div class="app-card action-card">
             <div class="action-icon"><i class="bi bi-plus-lg"></i></div>
-            <h2 class="h4">Log a Workout <span class="badge text-bg-secondary fs-6 fw-normal align-middle">Coming soon</span></h2>
+            <h2 class="h4">Log a Workout</h2>
             <p class="text-body-secondary">Record your exercises, sets, reps and weight for today's session.</p>
             <div>
-              <?php /* TODO: link to log_workout.php once it is built */ ?>
-              <button type="button" class="btn btn-primary" disabled>
+              <a href="<?php echo BASE_URL; ?>/user/log_workout.php" class="btn btn-primary">
                 <i class="bi bi-pencil-square"></i> Start Logging
-              </button>
+              </a>
             </div>
           </div>
         </div>
