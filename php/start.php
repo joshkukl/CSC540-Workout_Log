@@ -12,15 +12,16 @@ error_reporting(-1);
 ini_set('display_errors', 'On');
 
 /* the first connection to the database */
-DEFINE('DB_HOST', "localhost");
-DEFINE('DB_USER', "root");
-/* Put your MySQL root password in php/db_local.php (not committed) if you set one */
-if (file_exists(__DIR__ . '/db_local.php')) {
-  include_once (__DIR__ . '/db_local.php');
+/* Local settings (not committed) - see php/config.local.example.php */
+if (file_exists(__DIR__ . '/config.local.php')) {
+  include_once (__DIR__ . '/config.local.php');
 }
-if (!defined('DB_PASSWORD')) {
-  DEFINE('DB_PASSWORD', ""); // XAMPP default: no password
-}
+/* XAMPP defaults for anything config.local.php doesn't set */
+if (!defined('DB_HOST')) { DEFINE('DB_HOST', "localhost"); }
+if (!defined('DB_USER')) { DEFINE('DB_USER', "root"); }
+if (!defined('DB_PASSWORD')) { DEFINE('DB_PASSWORD', ""); }
+if (!defined('DB_NAME')) { DEFINE('DB_NAME', "login_db"); }
+if (!defined('SALT')) { DEFINE('SALT', "authentication"); }
 
 // Establish the initial database connection
 try {
@@ -31,7 +32,7 @@ try {
 }
 
 /* Check if database is there or will create it */
-$create_stmt = "CREATE DATABASE IF NOT EXISTS login_db";
+$create_stmt = "CREATE DATABASE IF NOT EXISTS " . DB_NAME;
 
 /* Check if database drop was sucessful */
 if(mysqli_query($db_connection, $create_stmt)) {
@@ -44,7 +45,7 @@ $prep_stmt->execute();
 $prep_stmt->close();
 
 /* Change to the created database */
-$db_connection->select_db("login_db");
+$db_connection->select_db(DB_NAME);
 
 /* Drop all tables for clean install */
 $db_connection->query('SET foreign_key_checks = 0');
@@ -60,7 +61,7 @@ $db_connection->query('SET foreign_key_checks = 1');
 
 
 /* Salt used for seasoning */
-$salt = 'authentication';
+$salt = SALT;
 
 //-----------------------------------------------------
 // Create Database Tables

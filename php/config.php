@@ -23,17 +23,16 @@ ini_set('display_errors', 1); // set to 1 to display errors, 0 to hide them
 /* Timezone for dates and times shown in the app (XAMPP defaults to Europe/Berlin) */
 date_default_timezone_set('America/New_York');
 
-DEFINE('DB_HOST', "localhost");
-DEFINE('DB_USER', "root");
-/* Put your MySQL root password in php/db_local.php (not committed) if you set one */
-if (file_exists(__DIR__ . '/db_local.php')) {
-  include_once (__DIR__ . '/db_local.php');
+/* Local settings (not committed) - see php/config.local.example.php */
+if (file_exists(__DIR__ . '/config.local.php')) {
+  include_once (__DIR__ . '/config.local.php');
 }
-if (!defined('DB_PASSWORD')) {
-  DEFINE('DB_PASSWORD', ""); // XAMPP default: no password
-}
-DEFINE('DB_NAME', "login_db");
-DEFINE('SALT', "authentication");
+/* XAMPP defaults for anything config.local.php doesn't set */
+if (!defined('DB_HOST')) { DEFINE('DB_HOST', "localhost"); }
+if (!defined('DB_USER')) { DEFINE('DB_USER', "root"); }
+if (!defined('DB_PASSWORD')) { DEFINE('DB_PASSWORD', ""); }
+if (!defined('DB_NAME')) { DEFINE('DB_NAME', "login_db"); }
+if (!defined('SALT')) { DEFINE('SALT', "authentication"); }
 
 try {
   $db_connection = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)
