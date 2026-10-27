@@ -1,0 +1,16 @@
+# Local MySQL password - never commit
+php/db_local.php
+
+# Editor settings (each teammate's own)
+.vscode/
+.idea/
+
+# Files created by Mac and Windows
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and editor temp files
+*.log
+*.swp
+*~

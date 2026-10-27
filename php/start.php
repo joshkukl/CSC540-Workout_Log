@@ -14,7 +14,13 @@ ini_set('display_errors', 'On');
 /* the first connection to the database */
 DEFINE('DB_HOST', "localhost");
 DEFINE('DB_USER', "root");
-DEFINE('DB_PASSWORD', ""); //Note: this should be your root password
+/* Put your MySQL root password in php/db_local.php (not committed) if you set one */
+if (file_exists(__DIR__ . '/db_local.php')) {
+  include_once (__DIR__ . '/db_local.php');
+}
+if (!defined('DB_PASSWORD')) {
+  DEFINE('DB_PASSWORD', ""); // XAMPP default: no password
+}
 
 // Establish the initial database connection
 try {
@@ -101,6 +107,7 @@ $create_users = $db_connection->prepare(
         role_id int NOT NULL,
         contact_id int NOT NULL,
 	    creation_date timestamp,
+        is_suspended tinyint(1) NOT NULL DEFAULT 0,
 	    PRIMARY KEY(user_id),
         FOREIGN KEY(role_id) REFERENCES Roles(role_id),
         FOREIGN KEY(contact_id) REFERENCES Contacts(contact_id));");

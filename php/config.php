@@ -25,7 +25,13 @@ date_default_timezone_set('America/New_York');
 
 DEFINE('DB_HOST', "localhost");
 DEFINE('DB_USER', "root");
-DEFINE('DB_PASSWORD', ""); //Note: this should be your root password
+/* Put your MySQL root password in php/db_local.php (not committed) if you set one */
+if (file_exists(__DIR__ . '/db_local.php')) {
+  include_once (__DIR__ . '/db_local.php');
+}
+if (!defined('DB_PASSWORD')) {
+  DEFINE('DB_PASSWORD', ""); // XAMPP default: no password
+}
 DEFINE('DB_NAME', "login_db");
 DEFINE('SALT', "authentication");
 

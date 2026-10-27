@@ -20,7 +20,8 @@
         u.role_id,
         c.first_name,
         cr.username,
-        r.role_type
+        r.role_type,
+        u.is_suspended
     FROM Users u
     INNER JOIN Contacts c ON u.contact_id = c.contact_id
     INNER JOIN Credentials cr ON u.user_id = cr.user_id
@@ -28,8 +29,16 @@
     WHERE cr.username = ?");
   $select_user->bind_param("s", $user_check);
   $select_user->execute();
-  $select_user->bind_result($user_id, $user_role, $first_name, $username, $user_type);
+  $select_user->bind_result($user_id, $user_role, $first_name, $username, $user_type, $is_suspended);
   $select_user->fetch();
+  $select_user->close();
+
+  // Log out anyone whose account was suspended while they were logged in
+  if ($is_suspended) {
+    $_SESSION['message'] = "This account has been suspended. Please contact an administrator.";
+    header("location: " . SRC_PATH . "/logout.php");
+    exit();
+  }
 
   # session information
   $_SESSION['user_id'] = $user_id;
@@ -55,7 +64,6 @@
     exit();
   }
 
-  $select_user->close();
   // Close the mysql connection
   //mysqli_close($db_connection); 
 

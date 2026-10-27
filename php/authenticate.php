@@ -38,19 +38,26 @@ if (isset($_POST['submit'])) {
     // SQL query to fetch information and find match user
     $select_users = $db_connection->prepare(
         // SQL query to fetch user details
-        "SELECT u.user_id, u.role_id, cr.username
+        "SELECT u.user_id, u.role_id, cr.username, u.is_suspended
          FROM Users u
          JOIN Credentials cr ON u.user_id = cr.user_id
          WHERE cr.username = ? AND cr.password_salted = ? LIMIT 1");
     $select_users->bind_param("ss", $username, $pass);
     $select_users->execute();
-    $select_users->bind_result($user_id, $user_role, $username);
+    $select_users->bind_result($user_id, $user_role, $username, $is_suspended);
     $select_users->store_result();
 
     //Checking the result of the query for a match and results only found 1 match
     if($select_users->num_rows == 1) {
       // Fetch the results
       if($select_users->fetch()) {
+        // Correct password, but suspended accounts may not log in
+        if ($is_suspended) {
+          session_start();
+          $_SESSION['message'] = "This account has been suspended. Please contact an administrator.";
+          header("location: " . SRC_PATH . "/logout.php");
+          exit();
+        }
         // Successful login
         session_start(); 
         # This area needs to send users and admins to there own directory
