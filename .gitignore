@@ -1,5 +1,12 @@
-# Local MySQL password - never commit
+# Git ignore file for the CSC540 Workout Log project
+# Ignore local configuration and environment files
 php/db_local.php
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+config.local.php
 
 # Editor settings (each teammate's own)
 .vscode/
@@ -14,3 +21,10 @@ desktop.ini
 *.log
 *.swp
 *~
+
+# User-uploaded files
+/uploads/
+/public/uploads/
+/storage/
+/public/storage/
+
