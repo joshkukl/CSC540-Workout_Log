@@ -38,6 +38,9 @@ $current_page = isset($page_name) ? $page_name : '';
           <li class="nav-item"><a class="nav-link<?php echo $current_page == 'create_account' ? ' active' : ''; ?>" href="<?php echo BASE_URL; ?>/create_account.php">Create Account</a></li>
         <?php } else { ?>
           <li class="nav-item"><a class="nav-link<?php echo in_array($current_page, array('admin', 'user', 'guest')) ? ' active' : ''; ?>" href="<?php echo $dashboard_url; ?>">Dashboard</a></li>
+          <?php if ($_SESSION['user_role'] == 1) { /* Admin pages */ ?>
+            <li class="nav-item"><a class="nav-link<?php echo $current_page == 'accounts' ? ' active' : ''; ?>" href="<?php echo BASE_URL; ?>/admin/accounts.php">Manage Accounts</a></li>
+          <?php } ?>
           <?php if ($_SESSION['user_role'] == 2) { /* Workout pages */ ?>
             <li class="nav-item"><a class="nav-link<?php echo $current_page == 'log_workout' ? ' active' : ''; ?>" href="<?php echo BASE_URL; ?>/user/log_workout.php">Log Workout</a></li>
             <li class="nav-item"><a class="nav-link disabled" aria-disabled="true">History</a></li>

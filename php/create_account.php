@@ -9,7 +9,7 @@ include_once (realpath(dirname(__FILE__).'/config.php'));
 session_start();
 
 /* Salt used for seasoning */
-$salt = 'authentication';
+$salt = SALT;
 
 /* Send the user back to the form with an error, keeping what they typed */
 function form_error($message) {
