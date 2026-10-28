@@ -18,6 +18,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
 
   /* Check Role */
   include_once (ROOT_SRC_PATH .'/check_user.php'); // Check user role and redirect if not authorized
+  include_once (ROOT_SRC_PATH .'/format.php');
 
   /* Page Name */
   $page_name = "log_workout"; // Set page name for active link in header
@@ -65,11 +66,6 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   /* Keep the last exercise picked so adding several sets in a row is quick */
   $last_exercise = $_SESSION['last_exercise'] ?? '';
 
-  /* Show 95.00 as 95 and 3.10 as 3.1 */
-  function show_number($value) {
-    return $value === null ? '' : rtrim(rtrim($value, '0'), '.');
-  }
-
 ?>
 <!doctype html>
 <html lang="en">
@@ -88,13 +84,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
           <span class="badge text-bg-dark fs-6 fw-normal align-middle"><?php echo htmlspecialchars($type_name); ?></span>
         </h1>
         <p class="text-body-secondary mb-0">
-          <?php
-          $details = array();
-          if ($facility_name) { $details[] = htmlspecialchars($facility_name); }
-          if ($duration_minutes) { $details[] = $duration_minutes . ' min'; }
-          if ($bodyweight_lbs) { $details[] = 'Bodyweight ' . show_number($bodyweight_lbs) . ' lbs'; }
-          echo implode(' &middot; ', $details);
-          ?>
+          <?php echo show_workout_details($facility_name, $duration_minutes, $bodyweight_lbs); ?>
         </p>
         <?php if ($notes) { ?>
           <p class="mb-0 mt-2"><?php echo nl2br(htmlspecialchars($notes)); ?></p>
@@ -169,18 +159,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
                   <tr>
                     <td><?php echo htmlspecialchars($set['exercise_name']); ?></td>
                     <td><?php echo $set['set_number']; ?></td>
-                    <td>
-                      <?php
-                      if ($set['category'] == 'Strength') {
-                        echo ($set['weight_lbs'] === null ? 'Bodyweight' : show_number($set['weight_lbs']) . ' lbs') . ' &times; ' . $set['reps'];
-                      } else {
-                        $parts = array();
-                        if ($set['duration_minutes'] !== null) { $parts[] = show_number($set['duration_minutes']) . ' min'; }
-                        if ($set['distance_miles'] !== null) { $parts[] = show_number($set['distance_miles']) . ' mi'; }
-                        echo implode(' &middot; ', $parts);
-                      }
-                      ?>
-                    </td>
+                    <td><?php echo show_set_result($set); ?></td>
                     <td class="text-end">
                       <form action="<?php echo SRC_PATH; ?>/delete_set.php" method="post" class="d-inline">
                         <input type="hidden" name="set_id" value="<?php echo $set['set_id']; ?>">

@@ -2,7 +2,7 @@
 
 A web app for logging workouts and tracking training history, built for CSC 540. Users log in, land on a personal dashboard, and (once those pages are built) can record workouts and look back through past sessions.
 
-It runs on a local XAMPP stack: PHP, MariaDB, and Apache, with Bootstrap 5.3 for the front end.
+It runs on a local XAMPP stack: PHP, MariaDB, and Apache, with Bootstrap 5.3 for the front end and Chart.js for the history charts.
 
 ## Project Status
 
@@ -11,7 +11,7 @@ It runs on a local XAMPP stack: PHP, MariaDB, and Apache, with Bootstrap 5.3 for
 | Login, logout, and account roles (admin, user, guest) | Done |
 | User dashboard | Done (layout and placeholders) |
 | Log a workout (create with your own type and bodyweight, add sets, start from a past workout) | Done |
-| Workout history | Not started |
+| Workout history (charts of your training, then every workout newest first) | Done |
 | Weekly stats on the dashboard | Waiting on workout tables |
 | Forgot password | Not started (form points to a page that doesn't exist yet) |
 

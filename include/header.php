@@ -43,7 +43,7 @@ $current_page = isset($page_name) ? $page_name : '';
           <?php } ?>
           <?php if ($_SESSION['user_role'] == 2) { /* Workout pages */ ?>
             <li class="nav-item"><a class="nav-link<?php echo $current_page == 'log_workout' ? ' active' : ''; ?>" href="<?php echo BASE_URL; ?>/user/log_workout.php">Log Workout</a></li>
-            <li class="nav-item"><a class="nav-link disabled" aria-disabled="true">History</a></li>
+            <li class="nav-item"><a class="nav-link<?php echo $current_page == 'history' ? ' active' : ''; ?>" href="<?php echo BASE_URL; ?>/user/history.php">History</a></li>
           <?php } ?>
         <?php } ?>
       </ul>
