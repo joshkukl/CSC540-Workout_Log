@@ -69,13 +69,12 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
         <div class="col-md-6">
           <div class="app-card action-card">
             <div class="action-icon"><i class="bi bi-clock-history"></i></div>
-            <h2 class="h4">Workout History <span class="badge text-bg-secondary fs-6 fw-normal align-middle">Coming soon</span></h2>
+            <h2 class="h4">Workout History</h2>
             <p class="text-body-secondary">Browse past workouts and see how your training has changed over time.</p>
             <div>
-              <?php /* TODO: link to history.php once it is built */ ?>
-              <button type="button" class="btn btn-outline-secondary" disabled>
+              <a href="<?php echo BASE_URL; ?>/user/history.php" class="btn btn-outline-secondary">
                 <i class="bi bi-list-ul"></i> View History
-              </button>
+              </a>
             </div>
           </div>
         </div>
