@@ -54,11 +54,11 @@ if (!$workout_found) {
     exit();
 }
 
-// The exercise decides which fields are used
+// The exercise decides which fields are used (built-in, or one this user added)
 $exercise_id = (int) ($_POST['exercise_id'] ?? 0);
 $select_exercise = $db_connection->prepare(
-    "SELECT category FROM Exercises WHERE exercise_id = ?");
-$select_exercise->bind_param("i", $exercise_id);
+    "SELECT category FROM Exercises WHERE exercise_id = ? AND (user_id IS NULL OR user_id = ?)");
+$select_exercise->bind_param("ii", $exercise_id, $user_id);
 $select_exercise->execute();
 $select_exercise->bind_result($category);
 $exercise_found = $select_exercise->fetch();

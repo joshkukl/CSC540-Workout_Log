@@ -13,6 +13,7 @@ It runs on a local XAMPP stack: PHP, MariaDB, and Apache, with Bootstrap 5.3 for
 | Log a workout (create with your own type and bodyweight, add sets, start from a past workout) | Done |
 | Workout history | Not started |
 | Weekly stats on the dashboard | Waiting on workout tables |
+| Edit workouts: delete a workout, remove an exercise from a workout, add and delete your own exercises | Done |
 | Forgot password | Not started (form points to a page that doesn't exist yet) |
 
 ## Setup
