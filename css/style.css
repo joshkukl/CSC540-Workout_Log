@@ -207,3 +207,15 @@ a {
 .text-accent {
   color: var(--app-accent);
 }
+
+/* Workout history charts */
+.chart-card {
+  height: 100%;
+  padding: 1.5rem;
+}
+
+/* Chart.js needs a sized box to fill */
+.chart-box {
+  position: relative;
+  height: 260px;
+}

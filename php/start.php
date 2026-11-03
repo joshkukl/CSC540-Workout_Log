@@ -442,14 +442,34 @@ $insert_workout = $db_connection->prepare(
 	"INSERT INTO Workouts
 		(workout_id, user_id, type_id, workout_date, duration_minutes, facility_name, bodyweight_lbs, notes) VALUES(?,?,?,?,?,?,?,?);");
 $insert_workout->bind_param("iiisisds", $workout_id, $user_id, $type_id, $workout_date, $duration_minutes, $facility_name, $bodyweight_lbs, $notes);
+/* About 10 weeks of training so the history charts have trends to show */
 /* days ago, type_id, duration, facility, bodyweight, notes */
 $workouts = array(
-	1 => array("-12 days", 1, 60, "Campus Rec Center", 148.6, "Upper body day"),
-	2 => array("-10 days", 3, 30, "Campus Rec Center", null, null),
-	3 => array("-8 days", 2, 55, "Campus Rec Center", 148.2, "Legs felt heavy"),
-	4 => array("-5 days", 1, 65, "Campus Rec Center", 147.8, "New bench PR"),
-	5 => array("-3 days", 4, 45, "Downtown Gym", null, null),
-	6 => array("-1 day", 2, 50, "Campus Rec Center", 147.4, "Deadlift focus"),
+	1 => array("-68 days", 1, 55, "Campus Rec Center", 152.0, "First week back"),
+	2 => array("-66 days", 2, 50, "Campus Rec Center", null, null),
+	3 => array("-63 days", 3, 25, null, null, null),
+	4 => array("-61 days", 1, 60, "Campus Rec Center", 151.6, null),
+	5 => array("-59 days", 2, 55, "Campus Rec Center", null, null),
+	6 => array("-54 days", 1, 60, "Campus Rec Center", 151.2, null),
+	7 => array("-52 days", 2, 50, "Campus Rec Center", 151.0, null),
+	8 => array("-50 days", 3, 30, "Campus Rec Center", null, null),
+	9 => array("-47 days", 4, 45, "Downtown Gym", null, null),
+	10 => array("-45 days", 1, 60, "Campus Rec Center", 150.4, null),
+	11 => array("-43 days", 2, 55, "Campus Rec Center", null, "Squats moving well"),
+	12 => array("-40 days", 3, 30, null, 150.0, null),
+	13 => array("-36 days", 1, 65, "Campus Rec Center", 149.8, null),
+	14 => array("-33 days", 2, 55, "Campus Rec Center", null, null),
+	15 => array("-29 days", 4, 45, "Downtown Gym", 149.4, null),
+	16 => array("-26 days", 1, 60, "Campus Rec Center", null, null),
+	17 => array("-24 days", 2, 50, "Campus Rec Center", 149.0, null),
+	18 => array("-22 days", 3, 35, null, null, "Longest run so far"),
+	19 => array("-15 days", 2, 50, "Campus Rec Center", 148.8, "Back after a rest week"),
+	20 => array("-12 days", 1, 60, "Campus Rec Center", 148.6, "Upper body day"),
+	21 => array("-10 days", 3, 30, "Campus Rec Center", null, null),
+	22 => array("-8 days", 2, 55, "Campus Rec Center", 148.2, "Legs felt heavy"),
+	23 => array("-5 days", 1, 65, "Campus Rec Center", 147.8, "New bench PR"),
+	24 => array("-3 days", 4, 45, "Downtown Gym", null, null),
+	25 => array("-1 day", 2, 50, "Campus Rec Center", 147.4, "Deadlift focus"),
 );
 $user_id = 2;
 foreach ($workouts as $workout_id => $row) {
@@ -467,17 +487,55 @@ $insert_set = $db_connection->prepare(
 		(workout_id, exercise_id, set_number, weight_lbs, reps, duration_minutes, distance_miles) VALUES(?,?,?,?,?,?,?);");
 $insert_set->bind_param("iiididd", $workout_id, $exercise_id, $set_number, $weight_lbs, $reps, $set_duration, $distance_miles);
 $strength_sets = array(
-	array(1, 1, 95, array(10, 8, 8)),
-	array(1, 5, 80, array(12, 10, 10)),
-	array(1, 6, 40, array(12, 12)),
-	array(3, 2, 115, array(8, 8, 6)),
-	array(3, 7, 180, array(12, 10)),
-	array(4, 1, 105, array(8, 6, 5)),
-	array(4, 4, 25, array(10, 10)),
-	array(4, 8, null, array(15, 12)),
-	array(5, 2, 120, array(8, 8)),
-	array(6, 3, 155, array(5, 5, 3)),
-	array(6, 5, 85, array(10, 10)),
+	array(1, 1, 75, array(10, 10, 8)),
+	array(1, 5, 65, array(12, 12, 10)),
+	array(1, 6, 30, array(12, 12)),
+	array(2, 2, 85, array(10, 8, 8)),
+	array(2, 7, 140, array(12, 12)),
+	array(4, 1, 80, array(10, 8, 8)),
+	array(4, 5, 65, array(12, 12, 12)),
+	array(4, 4, 20, array(10, 10)),
+	array(5, 2, 90, array(8, 8, 8)),
+	array(5, 3, 115, array(5, 5, 5)),
+	array(6, 1, 80, array(10, 10, 8)),
+	array(6, 5, 70, array(12, 10, 10)),
+	array(6, 6, 35, array(12, 10)),
+	array(7, 2, 95, array(8, 8, 6)),
+	array(7, 7, 150, array(12, 10)),
+	array(9, 2, 95, array(8, 8)),
+	array(9, 1, 80, array(10, 8)),
+	array(9, 8, null, array(12, 10)),
+	array(10, 1, 85, array(10, 8, 8)),
+	array(10, 5, 70, array(12, 12, 10)),
+	array(10, 4, 20, array(12, 10)),
+	array(11, 2, 100, array(8, 8, 8)),
+	array(11, 3, 125, array(5, 5, 5)),
+	array(13, 1, 90, array(8, 8, 6)),
+	array(13, 5, 75, array(12, 10, 10)),
+	array(13, 6, 35, array(12, 12)),
+	array(14, 2, 105, array(8, 6, 6)),
+	array(14, 7, 160, array(12, 10)),
+	array(15, 2, 105, array(8, 8)),
+	array(15, 1, 85, array(10, 8)),
+	array(15, 8, null, array(15, 12)),
+	array(16, 1, 90, array(10, 8, 8)),
+	array(16, 5, 75, array(12, 12, 10)),
+	array(16, 4, 25, array(8, 8)),
+	array(17, 2, 110, array(8, 8, 6)),
+	array(17, 3, 135, array(5, 5, 3)),
+	array(19, 3, 145, array(5, 5, 5)),
+	array(19, 7, 170, array(12, 10)),
+	array(20, 1, 95, array(10, 8, 8)),
+	array(20, 5, 80, array(12, 10, 10)),
+	array(20, 6, 40, array(12, 12)),
+	array(22, 2, 115, array(8, 8, 6)),
+	array(22, 7, 180, array(12, 10)),
+	array(23, 1, 105, array(8, 6, 5)),
+	array(23, 4, 25, array(10, 10)),
+	array(23, 8, null, array(15, 12)),
+	array(24, 2, 120, array(8, 8)),
+	array(25, 3, 155, array(5, 5, 3)),
+	array(25, 5, 85, array(10, 10)),
 );
 foreach ($strength_sets as $row) {
 	list($workout_id, $exercise_id, $weight_lbs, $rep_list) = $row;
@@ -489,8 +547,12 @@ foreach ($strength_sets as $row) {
 	}
 }
 $cardio_sets = array(
-	array(2, 10, 30, 3.1),
-	array(5, 9, 20, 2.0),
+	array(3, 10, 25, 2.4),
+	array(8, 9, 30, 2.8),
+	array(12, 10, 30, 2.9),
+	array(18, 10, 35, 3.4),
+	array(21, 10, 30, 3.1),
+	array(24, 9, 20, 2.0),
 );
 foreach ($cardio_sets as $row) {
 	list($workout_id, $exercise_id, $set_duration, $distance_miles) = $row;
