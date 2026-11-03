@@ -4,6 +4,7 @@
 //======================================================================
 
 include_once (realpath(dirname(__FILE__).'/session.php'));
+include_once (realpath(dirname(__FILE__).'/csrf.php'));
 
 /* Only standard users log workouts */
 if ($user_role != 2) {
@@ -32,6 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
     header("location: " . BASE_URL . "/user/log_workout.php");
     exit();
 }
+
+csrf_check(BASE_URL . "/user/log_workout.php");
 
 // collect value of input field (empty optional fields are stored as NULL)
 $workout_date = trim($_POST['workout_date'] ?? '');
@@ -112,13 +115,15 @@ if (!$insert_workout->execute()) {
 $workout_id = $insert_workout->insert_id;
 $insert_workout->close();
 
-// Copy the template's sets into the new workout
+// Copy the template's sets into the new workout (skipping exercises the user has deleted)
 if ($template_id !== '') {
     $copy_sets = $db_connection->prepare(
         "INSERT INTO Sets (workout_id, exercise_id, set_number, weight_lbs, reps, duration_minutes, distance_miles)
-        SELECT ?, exercise_id, set_number, weight_lbs, reps, duration_minutes, distance_miles
-        FROM Sets WHERE workout_id = ?
-        ORDER BY set_id");
+        SELECT ?, s.exercise_id, s.set_number, s.weight_lbs, s.reps, s.duration_minutes, s.distance_miles
+        FROM Sets s
+        INNER JOIN Exercises e ON s.exercise_id = e.exercise_id
+        WHERE s.workout_id = ? AND e.is_archived = 0
+        ORDER BY s.set_id");
     $copy_sets->bind_param("ii", $workout_id, $template_id);
     $copy_sets->execute();
     $copy_sets->close();

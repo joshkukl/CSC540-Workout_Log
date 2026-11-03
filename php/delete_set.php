@@ -4,6 +4,7 @@
 //======================================================================
 
 include_once (realpath(dirname(__FILE__).'/session.php'));
+include_once (realpath(dirname(__FILE__).'/csrf.php'));
 
 /* Only standard users log workouts */
 if ($user_role != 2) {
@@ -16,6 +17,8 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
     header("location: " . BASE_URL . "/user/log_workout.php");
     exit();
 }
+
+csrf_check(BASE_URL . "/user/log_workout.php");
 
 // Find the set's workout, only if that workout belongs to this user
 $set_id = (int) ($_POST['set_id'] ?? 0);
