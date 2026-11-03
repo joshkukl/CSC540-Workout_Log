@@ -5,6 +5,7 @@
 //======================================================================
 
 include_once (realpath(dirname(__FILE__).'/session.php'));
+include_once (realpath(dirname(__FILE__).'/csrf.php'));
 
 /* Only standard users log workouts */
 if ($user_role != 2) {
@@ -17,6 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
     header("location: " . BASE_URL . "/user/");
     exit();
 }
+
+csrf_check(BASE_URL . "/user/");
 
 // Only delete it if the workout belongs to this user
 $workout_id = (int) ($_POST['workout_id'] ?? 0);

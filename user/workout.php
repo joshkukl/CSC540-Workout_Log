@@ -61,23 +61,40 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
     $workout_exercises[$set['exercise_id']] = $set['exercise_name'];
   }
 
-  /* Exercises for the add-set form: built-in ones (no owner) plus the ones this user added,
-     with equipment so similar ones are easy to tell apart */
+  /* Exercises for the add-set form: built-in ones (no owner) plus the ones this user added
+     and hasn't deleted, with equipment so similar ones are easy to tell apart */
   $select_exercises = $db_connection->prepare(
-    "SELECT e.exercise_id, e.exercise_name, e.category, e.user_id, eq.machine_type
+    "SELECT e.exercise_id, e.exercise_name, e.category, eq.machine_type
     FROM Exercises e
     LEFT JOIN Equipment eq ON e.equipment_id = eq.equipment_id
-    WHERE e.user_id IS NULL OR e.user_id = ?
+    WHERE (e.user_id IS NULL OR e.user_id = ?) AND e.is_archived = 0
     ORDER BY e.category DESC, e.exercise_name");
   $select_exercises->bind_param("i", $user_id);
   $select_exercises->execute();
   $exercises = $select_exercises->get_result()->fetch_all(MYSQLI_ASSOC);
   $select_exercises->close();
 
-  /* The user's own exercises, listed under the add-exercise form so they can be deleted */
-  $my_exercises = array_filter($exercises, function ($exercise) {
-    return $exercise['user_id'] !== null;
-  });
+  /* The user's own exercises with their muscle groups, listed under the add-exercise form */
+  $select_mine = $db_connection->prepare(
+    "SELECT e.exercise_id, e.exercise_name, e.category,
+      GROUP_CONCAT(m.group_name ORDER BY m.muscle_group_id SEPARATOR ', ') AS muscles
+    FROM Exercises e
+    LEFT JOIN Exercise_Muscle_Map em ON e.exercise_id = em.exercise_id
+    LEFT JOIN Muscle_Groups m ON em.muscle_group_id = m.muscle_group_id
+    WHERE e.user_id = ? AND e.is_archived = 0
+    GROUP BY e.exercise_id
+    ORDER BY e.exercise_name");
+  $select_mine->bind_param("i", $user_id);
+  $select_mine->execute();
+  $my_exercises = $select_mine->get_result()->fetch_all(MYSQLI_ASSOC);
+  $select_mine->close();
+
+  /* Muscle groups for the add-exercise checkboxes */
+  $muscle_groups = $db_connection->query(
+    "SELECT muscle_group_id, group_name FROM Muscle_Groups ORDER BY muscle_group_id")->fetch_all(MYSQLI_ASSOC);
+
+  /* CSRF token for this page's forms */
+  include_once (ROOT_SRC_PATH . '/csrf.php');
 
   /* Keep the last exercise picked so adding several sets in a row is quick */
   $last_exercise = $_SESSION['last_exercise'] ?? '';
@@ -128,6 +145,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
             <h2 class="h5 mb-3"><i class="bi bi-plus-circle text-accent"></i> Add a Set</h2>
             <form action="<?php echo SRC_PATH; ?>/add_set.php" method="post">
               <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
+              <?php echo csrf_field(); ?>
               <div class="mb-3">
                 <label for="exercise_id" class="form-label">Exercise</label>
                 <select class="form-select" id="exercise_id" name="exercise_id" required>
@@ -172,6 +190,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
             <h2 class="h5 mb-3"><i class="bi bi-bookmark-plus text-accent"></i> My Exercises</h2>
             <form action="<?php echo SRC_PATH; ?>/add_exercise.php" method="post">
               <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
+              <?php echo csrf_field(); ?>
               <div class="row g-2 mb-3">
                 <div class="col-7">
                   <label for="new_exercise_name" class="form-label">New exercise</label>
@@ -185,18 +204,31 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
                   </select>
                 </div>
               </div>
-              <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-plus-lg"></i> Add Exercise</button>
+              <fieldset class="mb-3">
+                <legend class="form-label fs-6">Muscles worked <span class="text-body-secondary">(optional, used by the history charts)</span></legend>
+                <?php foreach ($muscle_groups as $muscle) { ?>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" name="muscles[]" id="muscle_<?php echo $muscle['muscle_group_id']; ?>" value="<?php echo $muscle['muscle_group_id']; ?>">
+                    <label class="form-check-label" for="muscle_<?php echo $muscle['muscle_group_id']; ?>"><?php echo htmlspecialchars($muscle['group_name']); ?></label>
+                  </div>
+                <?php } ?>
+              </fieldset>
+              <button type="submit" class="btn btn-outline-secondary w-100"><i class="bi bi-plus-lg"></i> Add Exercise</button>
             </form>
             <?php if (empty($my_exercises)) { ?>
-              <p class="text-body-secondary small mt-3 mb-0">Exercises you add show up in the list above. Only you can see them.</p>
+              <p class="text-body-secondary small mt-3 mb-0">Exercises you add show up in the exercise list above. Only you can see them.</p>
             <?php } else { ?>
               <ul class="list-group mt-3">
                 <?php foreach ($my_exercises as $exercise) { ?>
                   <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span><?php echo htmlspecialchars($exercise['exercise_name']); ?> <span class="text-body-secondary small"><?php echo $exercise['category']; ?></span></span>
+                    <span>
+                      <?php echo htmlspecialchars($exercise['exercise_name']); ?>
+                      <span class="text-body-secondary small d-block"><?php echo $exercise['category'] . ($exercise['muscles'] ? ' &middot; ' . htmlspecialchars($exercise['muscles']) : ''); ?></span>
+                    </span>
                     <form action="<?php echo SRC_PATH; ?>/delete_exercise.php" method="post" class="d-inline"
-                          onsubmit="return confirm('Delete <?php echo htmlspecialchars(addslashes($exercise['exercise_name'])); ?> from your exercises?');">
+                          onsubmit="return confirm('Remove <?php echo htmlspecialchars(addslashes($exercise['exercise_name'])); ?> from your exercises? Past workouts keep their sets.');">
                       <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
+                      <?php echo csrf_field(); ?>
                       <input type="hidden" name="exercise_id" value="<?php echo $exercise['exercise_id']; ?>">
                       <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete exercise"><i class="bi bi-trash"></i></button>
                     </form>
@@ -240,6 +272,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
                     <td class="text-end">
                       <form action="<?php echo SRC_PATH; ?>/delete_set.php" method="post" class="d-inline">
                         <input type="hidden" name="set_id" value="<?php echo $set['set_id']; ?>">
+                        <?php echo csrf_field(); ?>
                         <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete set"><i class="bi bi-trash"></i></button>
                       </form>
                     </td>
@@ -256,16 +289,18 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
                       onsubmit="return confirm('Remove <?php echo htmlspecialchars(addslashes($exercise_name)); ?> and all its sets from this workout?');">
                   <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
                   <input type="hidden" name="exercise_id" value="<?php echo $exercise_id; ?>">
+                  <?php echo csrf_field(); ?>
                   <button type="submit" class="btn btn-sm btn-outline-danger mb-1"><i class="bi bi-x-lg"></i> <?php echo htmlspecialchars($exercise_name); ?></button>
                 </form>
               <?php } ?>
             </div>
           <?php } ?>
-          <div class="d-flex justify-content-between mt-3">
+          <div class="d-flex justify-content-between align-items-start mt-3">
             <a href="<?php echo BASE_URL; ?>/user/" class="btn btn-outline-secondary"><i class="bi bi-check2"></i> Done</a>
             <form action="<?php echo SRC_PATH; ?>/delete_workout.php" method="post"
                   onsubmit="return confirm('Delete this whole workout and all its sets? This can\'t be undone.');">
               <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
+              <?php echo csrf_field(); ?>
               <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Delete Workout</button>
             </form>
           </div>

@@ -150,10 +150,12 @@ $create_muscle_groups->close();
 
 /* Exercises - equipment is optional (push-ups, running, etc.) */
 /* user_id is NULL for built-in exercises everyone sees, or the user who added it (only they see it) */
+/* is_archived: a user deleted their exercise but past workouts still use it, so it's hidden, not removed */
 $create_exercises = $db_connection->prepare(
 	"CREATE OR REPLACE TABLE Exercises(
         exercise_id int NOT NULL AUTO_INCREMENT,
         user_id int NULL,
+        is_archived tinyint(1) NOT NULL DEFAULT 0,
         equipment_id int NULL,
         exercise_name varchar(255) NOT NULL,
         category ENUM('Cardio', 'Strength') NOT NULL,

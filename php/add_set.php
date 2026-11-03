@@ -4,6 +4,7 @@
 //======================================================================
 
 include_once (realpath(dirname(__FILE__).'/session.php'));
+include_once (realpath(dirname(__FILE__).'/csrf.php'));
 
 /* Only standard users log workouts */
 if ($user_role != 2) {
@@ -40,6 +41,8 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
     exit();
 }
 
+csrf_check($workout_url);
+
 // The workout has to belong to this user
 $check_workout = $db_connection->prepare(
     "SELECT workout_id FROM Workouts WHERE workout_id = ? AND user_id = ?");
@@ -54,10 +57,11 @@ if (!$workout_found) {
     exit();
 }
 
-// The exercise decides which fields are used (built-in, or one this user added)
+// The exercise decides which fields are used (built-in, or one this user added and hasn't deleted)
 $exercise_id = (int) ($_POST['exercise_id'] ?? 0);
 $select_exercise = $db_connection->prepare(
-    "SELECT category FROM Exercises WHERE exercise_id = ? AND (user_id IS NULL OR user_id = ?)");
+    "SELECT category FROM Exercises
+    WHERE exercise_id = ? AND (user_id IS NULL OR user_id = ?) AND is_archived = 0");
 $select_exercise->bind_param("ii", $exercise_id, $user_id);
 $select_exercise->execute();
 $select_exercise->bind_result($category);

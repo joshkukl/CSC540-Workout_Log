@@ -18,6 +18,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
 
   /* Check Role */
   include_once (ROOT_SRC_PATH .'/check_user.php'); // Check user role and redirect if not authorized
+  include_once (ROOT_SRC_PATH .'/csrf.php');
 
   /* Page Name */
   $page_name = "log_workout"; // Set page name for active link in header
@@ -89,6 +90,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
         <p class="text-body-secondary">Create the session first, then add your exercises and sets.</p>
 
         <form action="<?php echo SRC_PATH; ?>/create_workout.php" method="post">
+          <?php echo csrf_field(); ?>
           <div class="mb-3">
             <label for="template_id" class="form-label">Start from a past workout <span class="text-body-secondary">(optional)</span></label>
             <select class="form-select" id="template_id" name="template_id">
