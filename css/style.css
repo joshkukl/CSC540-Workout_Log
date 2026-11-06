@@ -173,6 +173,7 @@ a {
 }
 
 .stat-card {
+  height: 100%;
   padding: 1.25rem;
 }
 
@@ -184,6 +185,11 @@ a {
 .stat-card .stat-value {
   font-size: 1.75rem;
   font-weight: 600;
+}
+
+.stat-card .stat-note {
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
 .empty-state {
