@@ -35,7 +35,7 @@
 
   // Log out anyone whose account was suspended while they were logged in
   if ($is_suspended) {
-    $_SESSION['message'] = "This account has been suspended. Please contact an administrator.";
+    $_SESSION['message'] = "This account is not active. Please contact an administrator to reactivate it.";
     header("location: " . SRC_PATH . "/logout.php");
     exit();
   }
