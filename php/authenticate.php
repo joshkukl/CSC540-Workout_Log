@@ -54,7 +54,7 @@ if (isset($_POST['submit'])) {
         // Correct password, but suspended accounts may not log in
         if ($is_suspended) {
           session_start();
-          $_SESSION['message'] = "This account has been suspended. Please contact an administrator.";
+          $_SESSION['message'] = "This account is not active. Please contact an administrator to reactivate it.";
           header("location: " . SRC_PATH . "/logout.php");
           exit();
         }
