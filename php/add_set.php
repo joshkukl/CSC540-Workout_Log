@@ -72,6 +72,25 @@ if (!$exercise_found) {
 }
 $_SESSION['last_exercise'] = $exercise_id;
 
+// Equipment is optional (the form fills in the exercise's usual one), but when chosen it has
+// to be built-in or one of this user's own that they haven't deleted
+$set_equipment = ($_POST['equipment_id'] ?? '') === '' ? null : (int) $_POST['equipment_id'];
+if ($set_equipment !== null) {
+    $check_equipment = $db_connection->prepare(
+        "SELECT equipment_id FROM Equipment
+        WHERE equipment_id = ? AND (user_id IS NULL OR user_id = ?) AND is_archived = 0");
+    $check_equipment->bind_param("ii", $set_equipment, $user_id);
+    $check_equipment->execute();
+    $check_equipment->store_result();
+    $equipment_found = $check_equipment->num_rows > 0;
+    $check_equipment->close();
+    if (!$equipment_found) {
+        form_error("Please choose equipment from the list.");
+    }
+}
+// Keep the machine picked for the next set of the same exercise
+$_SESSION['last_set'] = array('exercise_id' => $exercise_id, 'equipment_id' => $set_equipment ?? '');
+
 // Strength sets use weight/reps, cardio sets use duration/distance
 $weight_lbs = $reps = $set_duration = $distance_miles = null;
 if ($category == 'Strength') {
@@ -99,8 +118,8 @@ $select_number->close();
 
 // Insert into Sets table
 $insert_set = $db_connection->prepare(
-    "INSERT INTO Sets (workout_id, exercise_id, set_number, weight_lbs, reps, duration_minutes, distance_miles) VALUES (?, ?, ?, ?, ?, ?, ?)");
-$insert_set->bind_param("iiididd", $workout_id, $exercise_id, $set_number, $weight_lbs, $reps, $set_duration, $distance_miles);
+    "INSERT INTO Sets (workout_id, exercise_id, equipment_id, set_number, weight_lbs, reps, duration_minutes, distance_miles) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+$insert_set->bind_param("iiiididd", $workout_id, $exercise_id, $set_equipment, $set_number, $weight_lbs, $reps, $set_duration, $distance_miles);
 
 if (!$insert_set->execute()) {
     form_error("Something went wrong saving that set. Please try again.");

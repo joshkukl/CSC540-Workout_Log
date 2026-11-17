@@ -60,9 +60,6 @@ if ($result = $db_connection->query("SHOW TABLES")) {
 $db_connection->query('SET foreign_key_checks = 1');
 
 
-/* Salt used for seasoning */
-$salt = SALT;
-
 //-----------------------------------------------------
 // Create Database Tables
 //-----------------------------------------------------
@@ -133,9 +130,12 @@ $create_credentials->close();
 $create_equipment = $db_connection->prepare(
 	"CREATE OR REPLACE TABLE Equipment(
         equipment_id int NOT NULL AUTO_INCREMENT,
+        user_id int NULL,
+        is_archived tinyint(1) NOT NULL DEFAULT 0,
         brand_name varchar(255) NOT NULL,
         machine_type varchar(255) NOT NULL,
-        PRIMARY KEY(equipment_id));");
+        PRIMARY KEY(equipment_id),
+        FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE);");
 $create_equipment->execute();
 $create_equipment->close();
 
@@ -212,6 +212,7 @@ $create_sets = $db_connection->prepare(
         set_id int NOT NULL AUTO_INCREMENT,
         workout_id int NOT NULL,
         exercise_id int NOT NULL,
+        equipment_id int NULL,
         set_number int NOT NULL,
         weight_lbs decimal(6,2),
         reps int,
@@ -219,7 +220,8 @@ $create_sets = $db_connection->prepare(
         distance_miles decimal(6,2),
         PRIMARY KEY(set_id),
         FOREIGN KEY(workout_id) REFERENCES Workouts(workout_id) ON DELETE CASCADE,
-        FOREIGN KEY(exercise_id) REFERENCES Exercises(exercise_id));");
+        FOREIGN KEY(exercise_id) REFERENCES Exercises(exercise_id),
+        FOREIGN KEY(equipment_id) REFERENCES Equipment(equipment_id));");
 $create_sets->execute();
 $create_sets->close();
 
@@ -331,20 +333,17 @@ $insert_credentials = $db_connection->prepare(
 $insert_credentials->bind_param("sis", $username, $user_id, $password_salted);
 $username = "johndoe";
 $user_id = 1;
-$password_salted = crypt("SCSU2024", $salt);
-//$password_salted = password_hash("password123", PASSWORD_DEFAULT);
+$password_salted = password_hash("SCSU2024", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
 $user_id = 2;
 $username = "janesmith";
-$password_salted = crypt("SCSU2025", $salt);
-//$password_salted = password_hash("mypassword", PASSWORD_DEFAULT);
+$password_salted = password_hash("SCSU2025", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
 $user_id = 3;
 $username = "charliebrown";
-$password_salted = crypt("SCSU2026", $salt);
-//$password_salted = password_hash("charlie123", PASSWORD_DEFAULT);
+$password_salted = password_hash("SCSU2026", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
 $insert_credentials->close();
@@ -353,19 +352,27 @@ $insert_credentials->close();
 
 
 /* Equipment */
+/* user_id NULL: the generic built-in list admins manage (no brand, a barbell is a barbell) */
+/* user_id set: a machine that user added from their gym, only they see it */
 $insert_equipment = $db_connection->prepare(
 	"INSERT INTO Equipment
-		(equipment_id, brand_name, machine_type) VALUES(?,?,?);");
-$insert_equipment->bind_param("iss", $equipment_id, $brand_name, $machine_type);
+		(equipment_id, user_id, brand_name, machine_type) VALUES(?,?,?,?);");
+$insert_equipment->bind_param("iiss", $equipment_id, $user_id, $brand_name, $machine_type);
+/* user_id, brand, machine */
 $equipment = array(
-	1 => array("Rogue", "Barbell"),
-	2 => array("PowerBlock", "Dumbbell"),
-	3 => array("Life Fitness", "Cable Machine"),
-	4 => array("Hammer Strength", "Leg Press"),
-	5 => array("Precor", "Treadmill"),
+	1 => array(null, "", "Barbell"),
+	2 => array(null, "", "Dumbbell"),
+	3 => array(null, "", "Cable Machine"),
+	4 => array(null, "", "Leg Press Machine"),
+	5 => array(null, "", "Treadmill"),
+	6 => array(null, "", "Kettlebell"),
+	7 => array(2, "Hoist", "Chest Press"),
+	8 => array(2, "Hoist", "Lat Pulldown"),
+	9 => array(2, "Hoist", "Preacher Curl"),
+	10 => array(2, "Hoist", "Tricep Extension"),
 );
 foreach ($equipment as $equipment_id => $row) {
-	list($brand_name, $machine_type) = $row;
+	list($user_id, $brand_name, $machine_type) = $row;
 	$insert_equipment->execute();
 }
 $insert_equipment->close();
@@ -567,6 +574,14 @@ foreach ($cardio_sets as $row) {
 	$insert_set->execute();
 }
 $insert_set->close();
+
+/* Sample sets were done on each exercise's usual equipment... */
+$db_connection->query(
+	"UPDATE Sets s INNER JOIN Exercises e ON s.exercise_id = e.exercise_id
+	SET s.equipment_id = e.equipment_id");
+/* ...except janesmith's last two lat pulldown days, on her gym's Hoist machine (equipment 8) */
+$db_connection->query(
+	"UPDATE Sets SET equipment_id = 8 WHERE exercise_id = 5 AND workout_id IN (20, 25)");
 
 /* Status Display */
 echo nl2br("The database tables were successfully populated.\r\n");
