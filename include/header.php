@@ -48,11 +48,11 @@ $current_page = isset($page_name) ? $page_name : '';
         <?php } ?>
       </ul>
       <?php if ($is_logged_in && isset($_SESSION['user_first'])) { /* User Information */ ?>
-        <span class="navbar-text me-3">
+        <a class="nav-link me-3<?php echo $current_page == 'settings' ? ' active' : ''; ?>" href="<?php echo BASE_URL; ?>/settings.php" title="Account settings">
           <i class="bi bi-person-circle"></i>
           <?php echo htmlspecialchars($_SESSION['user_first']); ?>
           <span class="badge text-bg-light text-capitalize"><?php echo htmlspecialchars($_SESSION['user_type']); ?></span>
-        </span>
+        </a>
         <a class="btn btn-sm btn-outline-light" href="<?php echo SRC_PATH; ?>/logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a>
       <?php } ?>
     </div>
