@@ -29,6 +29,15 @@ if (exerciseSelect) {
   }
   exerciseSelect.addEventListener("change", showSetFields);
   showSetFields();
+
+  // Picking an exercise fills in its usual equipment
+  const equipmentSelect = document.getElementById("set_equipment_id");
+  if (equipmentSelect) {
+    exerciseSelect.addEventListener("change", function () {
+      const option = exerciseSelect.selectedOptions[0];
+      equipmentSelect.value = option && option.dataset.equipment ? option.dataset.equipment : "";
+    });
+  }
 }
 
 // Log workout form: picking a past workout fills in its type

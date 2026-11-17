@@ -46,9 +46,10 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   /* Sets already logged for this workout */
   $select_sets = $db_connection->prepare(
     "SELECT s.set_id, s.set_number, s.weight_lbs, s.reps, s.duration_minutes, s.distance_miles,
-      s.exercise_id, e.exercise_name, e.category
+      s.exercise_id, e.exercise_name, e.category, eq.brand_name, eq.machine_type
     FROM Sets s
     INNER JOIN Exercises e ON s.exercise_id = e.exercise_id
+    LEFT JOIN Equipment eq ON s.equipment_id = eq.equipment_id
     WHERE s.workout_id = ?
     ORDER BY s.set_id");
   $select_sets->bind_param("i", $workout_id);
@@ -65,7 +66,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   /* Exercises for the add-set form: built-in ones (no owner) plus the ones this user added
      and hasn't deleted, with equipment so similar ones are easy to tell apart */
   $select_exercises = $db_connection->prepare(
-    "SELECT e.exercise_id, e.exercise_name, e.category, eq.machine_type
+    "SELECT e.exercise_id, e.exercise_name, e.category, e.equipment_id, eq.machine_type
     FROM Exercises e
     LEFT JOIN Equipment eq ON e.equipment_id = eq.equipment_id
     WHERE (e.user_id IS NULL OR e.user_id = ?) AND e.is_archived = 0
@@ -99,6 +100,31 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
 
   /* Keep the last exercise picked so adding several sets in a row is quick */
   $last_exercise = $_SESSION['last_exercise'] ?? '';
+
+  /* Equipment for the add-set form: the built-in list plus machines this user added and hasn't deleted */
+  $select_equipment = $db_connection->prepare(
+    "SELECT equipment_id, user_id, brand_name, machine_type FROM Equipment
+    WHERE (user_id IS NULL OR user_id = ?) AND is_archived = 0
+    ORDER BY brand_name, machine_type");
+  $select_equipment->bind_param("i", $user_id);
+  $select_equipment->execute();
+  $equipment_list = $select_equipment->get_result()->fetch_all(MYSQLI_ASSOC);
+  $select_equipment->close();
+  $my_equipment = array_filter($equipment_list, function ($item) { return $item['user_id'] !== null; });
+
+  /* Pre-selected equipment: the machine used for the last set (or just added) when it's the same
+     exercise, otherwise the exercise's usual one (js/main.js does that when the exercise changes) */
+  $last_set = $_SESSION['last_set'] ?? array();
+  $form_equipment = '';
+  if (isset($last_set['equipment_id']) && $last_set['exercise_id'] == $last_exercise) {
+    $form_equipment = $last_set['equipment_id'];
+  } else {
+    foreach ($exercises as $exercise) {
+      if ($exercise['exercise_id'] == $last_exercise) {
+        $form_equipment = $exercise['equipment_id'];
+      }
+    }
+  }
 
 ?>
 <!doctype html>
@@ -143,13 +169,27 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
                   <?php foreach (array('Strength', 'Cardio') as $category) { ?>
                     <optgroup label="<?php echo $category; ?>">
                       <?php foreach ($exercises as $exercise) { if ($exercise['category'] != $category) { continue; } ?>
-                        <option value="<?php echo $exercise['exercise_id']; ?>" data-category="<?php echo $category; ?>"<?php echo $last_exercise == $exercise['exercise_id'] ? ' selected' : ''; ?>>
+                        <option value="<?php echo $exercise['exercise_id']; ?>" data-category="<?php echo $category; ?>" data-equipment="<?php echo $exercise['equipment_id']; ?>"<?php echo $last_exercise == $exercise['exercise_id'] ? ' selected' : ''; ?>>
                           <?php echo htmlspecialchars($exercise['exercise_name']) . ($exercise['machine_type'] ? ' (' . htmlspecialchars($exercise['machine_type']) . ')' : ''); ?>
                         </option>
                       <?php } ?>
                     </optgroup>
                   <?php } ?>
                 </select>
+              </div>
+              <div class="mb-3">
+                <label for="set_equipment_id" class="form-label">Equipment</label>
+                <select class="form-select" id="set_equipment_id" name="equipment_id">
+                  <option value="">None / not sure</option>
+                  <?php foreach (array('Standard' => false, 'My Equipment' => true) as $group => $is_mine) { ?>
+                    <optgroup label="<?php echo $group; ?>">
+                      <?php foreach ($equipment_list as $item) { if (($item['user_id'] !== null) != $is_mine) { continue; } ?>
+                        <option value="<?php echo $item['equipment_id']; ?>"<?php echo $form_equipment == $item['equipment_id'] ? ' selected' : ''; ?>><?php echo htmlspecialchars(equipment_name($item['brand_name'], $item['machine_type'])); ?></option>
+                      <?php } ?>
+                    </optgroup>
+                  <?php } ?>
+                </select>
+                <div class="form-text">Filled in with the exercise's usual equipment. Used a specific machine? <a href="#my-equipment">Add it to My Equipment</a>.</div>
               </div>
               <div class="row g-2 mb-3" data-fields="Strength">
                 <div class="col">
@@ -227,6 +267,44 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
               </ul>
             <?php } ?>
           </div>
+
+          <?php /* My Equipment - machines at the user's gym that aren't in the generic list */ ?>
+          <div class="app-card p-4 mt-4" id="my-equipment">
+            <h2 class="h5 mb-3"><i class="bi bi-gear text-accent"></i> My Equipment</h2>
+            <form action="<?php echo SRC_PATH; ?>/add_equipment.php" method="post">
+              <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
+              <?php echo csrf_field(); ?>
+              <div class="row g-2 mb-3">
+                <div class="col-5">
+                  <label for="new_equipment_brand" class="form-label">Brand <span class="text-body-secondary">(optional)</span></label>
+                  <input type="text" class="form-control" id="new_equipment_brand" name="brand_name" maxlength="100" placeholder="e.g. Hoist">
+                </div>
+                <div class="col-7">
+                  <label for="new_equipment_machine" class="form-label">Machine</label>
+                  <input type="text" class="form-control" id="new_equipment_machine" name="machine_type" maxlength="100" placeholder="e.g. Lat Pulldown" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-outline-secondary w-100"><i class="bi bi-plus-lg"></i> Add Equipment</button>
+            </form>
+            <?php if (empty($my_equipment)) { ?>
+              <p class="text-body-secondary small mt-3 mb-0">Add the machines at your gym so you can tell them apart. Free weights like barbells are already in the list. Only you can see equipment you add.</p>
+            <?php } else { ?>
+              <ul class="list-group mt-3">
+                <?php foreach ($my_equipment as $item) { $item_name = equipment_name($item['brand_name'], $item['machine_type']); ?>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><?php echo htmlspecialchars($item_name); ?></span>
+                    <form action="<?php echo SRC_PATH; ?>/delete_equipment.php" method="post" class="d-inline"
+                          onsubmit="return confirm('Remove <?php echo htmlspecialchars(addslashes($item_name)); ?> from your equipment? Sets you logged on it keep it.');">
+                      <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
+                      <?php echo csrf_field(); ?>
+                      <input type="hidden" name="equipment_id" value="<?php echo $item['equipment_id']; ?>">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete equipment"><i class="bi bi-trash"></i></button>
+                    </form>
+                  </li>
+                <?php } ?>
+              </ul>
+            <?php } ?>
+          </div>
         </div>
 
         <?php /* Sets Logged So Far */ ?>
@@ -245,7 +323,10 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
               <tbody>
                 <?php foreach ($sets as $set) { ?>
                   <tr>
-                    <td><?php echo htmlspecialchars($set['exercise_name']); ?></td>
+                    <td>
+                      <?php echo htmlspecialchars($set['exercise_name']); ?>
+                      <?php if ($set['machine_type'] !== null) { ?><span class="small text-body-secondary d-block"><?php echo htmlspecialchars(equipment_name($set['brand_name'], $set['machine_type'])); ?></span><?php } ?>
+                    </td>
                     <td><?php echo $set['set_number']; ?></td>
                     <td><?php echo show_set_result($set); ?></td>
                     <td class="text-end">

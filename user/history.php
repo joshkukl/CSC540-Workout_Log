@@ -39,10 +39,12 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   /* Every set this user has logged */
   $select_sets = $db_connection->prepare(
     "SELECT s.workout_id, s.exercise_id, s.set_number, s.weight_lbs, s.reps, s.duration_minutes, s.distance_miles,
+      s.equipment_id, e.equipment_id AS usual_equipment_id, eq.brand_name, eq.machine_type,
       e.exercise_name, e.category, w.workout_date
     FROM Sets s
     INNER JOIN Workouts w ON s.workout_id = w.workout_id
     INNER JOIN Exercises e ON s.exercise_id = e.exercise_id
+    LEFT JOIN Equipment eq ON s.equipment_id = eq.equipment_id
     WHERE w.user_id = ?
     ORDER BY s.set_id");
   $select_sets->bind_param("i", $user_id);
@@ -66,14 +68,18 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   $select_muscles->close();
 
   /* Group sets by workout, and keep the heaviest weight of each strength exercise per day */
+  /* Each machine gets its own line, since 100 lbs on one isn't 100 lbs on another
+     (sets saved without equipment count as the exercise's usual equipment) */
   $sets_by_workout = array();
-  $progress = array(); // exercise_id => name, and date => heaviest weight
+  $progress = array(); // "exercise_id-equipment_id" => name, and date => heaviest weight
   foreach ($sets as $set) {
     $sets_by_workout[$set['workout_id']][] = $set;
     if ($set['category'] == 'Strength' && $set['weight_lbs'] !== null) {
-      $exercise_id = $set['exercise_id'];
+      $equipment_id = $set['equipment_id'] ?? $set['usual_equipment_id'];
+      $exercise_id = $set['exercise_id'] . '-' . $equipment_id;
       $date = $set['workout_date'];
-      $progress[$exercise_id]['name'] = $set['exercise_name'];
+      $progress[$exercise_id]['name'] = $set['exercise_name']
+        . ($equipment_id != $set['usual_equipment_id'] ? ' (' . equipment_name($set['brand_name'], $set['machine_type']) . ')' : '');
       $progress[$exercise_id]['weights'][$date] = max($progress[$exercise_id]['weights'][$date] ?? 0, (float) $set['weight_lbs']);
     }
   }
@@ -295,7 +301,10 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
                   <tbody>
                     <?php foreach ($workout_sets as $set) { ?>
                       <tr>
-                        <td><?php echo htmlspecialchars($set['exercise_name']); ?></td>
+                        <td>
+                          <?php echo htmlspecialchars($set['exercise_name']); ?>
+                          <?php if ($set['machine_type'] !== null) { ?><span class="small text-body-secondary d-block"><?php echo htmlspecialchars(equipment_name($set['brand_name'], $set['machine_type'])); ?></span><?php } ?>
+                        </td>
                         <td><?php echo $set['set_number']; ?></td>
                         <td><?php echo show_set_result($set); ?></td>
                       </tr>

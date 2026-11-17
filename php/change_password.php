@@ -46,12 +46,12 @@ $select_password->bind_result($password_salted);
 $select_password->fetch();
 $select_password->close();
 
-if (!$password_salted || !hash_equals($password_salted, crypt($current_password, SALT))) {
+if (!$password_salted || !password_verify($current_password, $password_salted)) {
   form_error("Your current password is incorrect.");
 }
 
 // Update the Credentials table
-$new_salted = crypt($new_password, SALT);
+$new_salted = password_hash($new_password, PASSWORD_DEFAULT);
 $update_password = $db_connection->prepare(
   "UPDATE Credentials SET password_salted = ? WHERE user_id = ?");
 $update_password->bind_param("si", $new_salted, $user_id);

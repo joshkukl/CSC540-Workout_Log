@@ -118,8 +118,8 @@ $insert_workout->close();
 // Copy the template's sets into the new workout (skipping exercises the user has deleted)
 if ($template_id !== '') {
     $copy_sets = $db_connection->prepare(
-        "INSERT INTO Sets (workout_id, exercise_id, set_number, weight_lbs, reps, duration_minutes, distance_miles)
-        SELECT ?, s.exercise_id, s.set_number, s.weight_lbs, s.reps, s.duration_minutes, s.distance_miles
+        "INSERT INTO Sets (workout_id, exercise_id, equipment_id, set_number, weight_lbs, reps, duration_minutes, distance_miles)
+        SELECT ?, s.exercise_id, s.equipment_id, s.set_number, s.weight_lbs, s.reps, s.duration_minutes, s.distance_miles
         FROM Sets s
         INNER JOIN Exercises e ON s.exercise_id = e.exercise_id
         WHERE s.workout_id = ? AND e.is_archived = 0

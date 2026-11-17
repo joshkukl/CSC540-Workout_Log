@@ -37,7 +37,7 @@ $select_password->bind_result($password_salted);
 $select_password->fetch();
 $select_password->close();
 
-if (!$password_salted || !hash_equals($password_salted, crypt($_POST['password'] ?? '', SALT))) {
+if (!$password_salted || !password_verify($_POST['password'] ?? '', $password_salted)) {
   form_error("Your password is incorrect.");
 }
 
