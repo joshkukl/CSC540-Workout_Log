@@ -28,29 +28,34 @@ if (isset($_POST['submit'])) {
   if($_SERVER['REQUEST_METHOD'] === 'POST'){
     // Define variables
     $username = $_POST['username'];
-    $pass = crypt($_POST["password"], SALT );
     $user_roll = 0;
     // Protect against MYSQL injection
     $username = stripslashes($username);
-    $pass = stripslashes($pass);
     $username = mysqli_real_escape_string($db_connection, $username);
-    $pass = mysqli_real_escape_string($db_connection, $pass);
-    // SQL query to fetch information and find match user
+    // SQL query to fetch the user and their password hash
     $select_users = $db_connection->prepare(
         // SQL query to fetch user details
-        "SELECT u.user_id, u.role_id, cr.username, u.is_suspended
+        "SELECT u.user_id, u.role_id, cr.username, cr.password_salted, u.is_suspended
          FROM Users u
          JOIN Credentials cr ON u.user_id = cr.user_id
-         WHERE cr.username = ? AND cr.password_salted = ? LIMIT 1");
-    $select_users->bind_param("ss", $username, $pass);
+         WHERE cr.username = ? LIMIT 1");
+    $select_users->bind_param("s", $username);
     $select_users->execute();
-    $select_users->bind_result($user_id, $user_role, $username, $is_suspended);
+    $select_users->bind_result($user_id, $user_role, $username, $password_salted, $is_suspended);
     $select_users->store_result();
 
-    //Checking the result of the query for a match and results only found 1 match
-    if($select_users->num_rows == 1) {
-      // Fetch the results
-      if($select_users->fetch()) {
+    //Checking the result of the query: exactly 1 match, and the password fits its hash
+    if($select_users->num_rows == 1 && $select_users->fetch()
+        && password_verify($_POST['password'] ?? '', $password_salted)) {
+        // Accounts made before password_hash() still have an old crypt() hash
+        // (only the first 8 characters counted) - now that we know the password, replace it
+        if (password_needs_rehash($password_salted, PASSWORD_DEFAULT)) {
+          $new_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+          $update_hash = $db_connection->prepare("UPDATE Credentials SET password_salted = ? WHERE user_id = ?");
+          $update_hash->bind_param("si", $new_hash, $user_id);
+          $update_hash->execute();
+          $update_hash->close();
+        }
         // Correct password, but suspended accounts may not log in
         if ($is_suspended) {
           session_start();
@@ -75,7 +80,6 @@ if (isset($_POST['submit'])) {
           $_SESSION['error'] = "Login Failed";
           
         }
-      }
   } else {
     // Invalid login
     session_start();

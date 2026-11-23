@@ -8,9 +8,6 @@ include_once (realpath(dirname(__FILE__).'/config.php'));
 
 session_start();
 
-/* Salt used for seasoning */
-$salt = SALT;
-
 /* Send the user back to the form with an error, keeping what they typed */
 function form_error($message) {
     $_SESSION['error'] = $message;
@@ -89,9 +86,8 @@ if (!$insert_user->execute()) {
 $user_id = $insert_user->insert_id;
 $insert_user->close();
 
-// Insert into Credentials table with hashed password
-//$hashed_password = password_hash($password, PASSWORD_DEFAULT);
-$password_salted = crypt($password, $salt);
+// Insert into Credentials table with hashed password (password_hash adds its own random salt)
+$password_salted = password_hash($password, PASSWORD_DEFAULT);
 $insert_credential = $db_connection->prepare(
     "INSERT INTO Credentials (user_id, username, password_salted) VALUES (?, ?, ?)");
 $insert_credential->bind_param("iss", $user_id, $username, $password_salted);

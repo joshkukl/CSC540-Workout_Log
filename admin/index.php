@@ -48,7 +48,10 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
       <section class="mb-4">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <h2 class="mb-0">All System Users</h2>
-        <a class="btn btn-primary" href="./accounts.php"><i class="bi bi-people"></i> Manage Accounts</a>
+        <div>
+          <a class="btn btn-outline-secondary" href="./exercises.php"><i class="bi bi-list-check"></i> Exercises &amp; Equipment</a>
+          <a class="btn btn-primary" href="./accounts.php"><i class="bi bi-people"></i> Manage Accounts</a>
+        </div>
       </div>
       <div class="app-card p-3 table-responsive"><table class="table mb-0">
   <thead>

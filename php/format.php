@@ -17,6 +17,11 @@ function show_workout_details($facility_name, $duration_minutes, $bodyweight_lbs
     return implode(' &middot; ', $details);
 }
 
+/* Equipment as people say it: "Hoist Lat Pulldown", or just "Barbell" with no brand (plain text, escape it) */
+function equipment_name($brand_name, $machine_type) {
+    return trim($brand_name . ' ' . $machine_type);
+}
+
 /* Strength sets show weight x reps, cardio sets show time and distance */
 function show_set_result($set) {
     if ($set['category'] == 'Strength') {
