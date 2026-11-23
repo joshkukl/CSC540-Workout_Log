@@ -57,10 +57,10 @@ if ($workout_date > date('Y-m-d')) {
     form_error("The workout date can't be in the future.");
 }
 if ($type_name === '') {
-    form_error("Please choose a workout type.");
+    form_error("Please give the workout a name.");
 }
 if (strlen($type_name) > 50) {
-    form_error("Workout types can be at most 50 characters.");
+    form_error("Workout names can be at most 50 characters.");
 }
 if ($duration_minutes !== null && (!ctype_digit($duration_minutes) || $duration_minutes < 1 || $duration_minutes > 1440)) {
     form_error("Duration must be a whole number of minutes.");
@@ -72,11 +72,11 @@ if ($bodyweight_lbs !== null && (!is_numeric($bodyweight_lbs) || $bodyweight_lbs
 // The template has to be one of this user's own workouts
 if ($template_id !== '') {
     $check_template = $db_connection->prepare(
-        "SELECT workout_id FROM Workouts WHERE workout_id = ? AND user_id = ?");
+        "SELECT workout_date FROM Workouts WHERE workout_id = ? AND user_id = ?");
     $check_template->bind_param("ii", $template_id, $user_id);
     $check_template->execute();
-    $check_template->store_result();
-    $template_found = $check_template->num_rows > 0;
+    $check_template->bind_result($template_date);
+    $template_found = $check_template->fetch();
     $check_template->close();
     if (!$template_found) {
         form_error("That past workout couldn't be found.");
@@ -98,7 +98,7 @@ if ($type_id === null) {
         "INSERT INTO Workout_Types (user_id, type_name) VALUES (?, ?)");
     $insert_type->bind_param("is", $user_id, $type_name);
     if (!$insert_type->execute()) {
-        form_error("Something went wrong saving that workout type. Please try again.");
+        form_error("Something went wrong saving that workout name. Please try again.");
     }
     $type_id = $insert_type->insert_id;
     $insert_type->close();
@@ -127,7 +127,7 @@ if ($template_id !== '') {
     $copy_sets->bind_param("ii", $workout_id, $template_id);
     $copy_sets->execute();
     $copy_sets->close();
-    $_SESSION['success'] = "Workout created from your past workout. Delete or add sets to match what you did today.";
+    $_SESSION['success'] = "Started from your " . date('M j', strtotime($template_date)) . " workout. Edit the sets to match today.";
 } else {
     $_SESSION['success'] = "Workout created! Now add your exercises and sets.";
 }

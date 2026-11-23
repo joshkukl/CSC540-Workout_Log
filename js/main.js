@@ -40,7 +40,7 @@ if (exerciseSelect) {
   }
 }
 
-// Log workout form: picking a past workout fills in its type
+// Log workout form: picking a past workout fills in its name
 const templateSelect = document.getElementById("template_id");
 if (templateSelect) {
   const typeInput = document.getElementById("type_name");
