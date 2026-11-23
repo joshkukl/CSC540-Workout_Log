@@ -32,24 +32,43 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
     return htmlspecialchars(isset($old_input[$field]) ? $old_input[$field] : $default);
   }
 
-  /* Past workouts that can be used as a template, grouped by type */
+  /* Exercises in each of this user's workouts, in the order they were done (workout_id => names) */
+  $select_names = $db_connection->prepare(
+    "SELECT s.workout_id, e.exercise_name
+    FROM Sets s
+    INNER JOIN Workouts w ON s.workout_id = w.workout_id
+    INNER JOIN Exercises e ON s.exercise_id = e.exercise_id
+    WHERE w.user_id = ?
+    ORDER BY s.set_id");
+  $select_names->bind_param("i", $user_id);
+  $select_names->execute();
+  $workout_names = array();
+  foreach ($select_names->get_result()->fetch_all(MYSQLI_ASSOC) as $row) {
+    $workout_names[$row['workout_id']][$row['exercise_name']] = true;
+  }
+  $select_names->close();
+
+  /* Past workouts that can be used as a template, newest first:
+     "Lower · Nov 2 · Deadlift, Lat Pulldown, Leg Press +1 more" */
   $select_past = $db_connection->prepare(
-    "SELECT w.workout_id, w.workout_date, w.facility_name, t.type_name, COUNT(s.set_id)
+    "SELECT w.workout_id, w.workout_date, t.type_name
     FROM Workouts w
     INNER JOIN Workout_Types t ON w.type_id = t.type_id
-    LEFT JOIN Sets s ON w.workout_id = s.workout_id
     WHERE w.user_id = ?
-    GROUP BY w.workout_id
-    ORDER BY t.type_name, w.workout_date DESC, w.workout_id DESC");
+    ORDER BY w.workout_date DESC, w.workout_id DESC");
   $select_past->bind_param("i", $user_id);
   $select_past->execute();
-  $select_past->bind_result($past_id, $past_date, $past_facility, $past_type, $past_sets);
-  $past_workouts = array(); // type name => list of workouts
+  $select_past->bind_result($past_id, $past_date, $past_type);
+  $past_workouts = array();
   while ($select_past->fetch()) {
-    $past_workouts[$past_type][] = array(
+    $names = array_keys($workout_names[$past_id] ?? array());
+    $exercises_text = empty($names) ? 'no sets'
+      : implode(', ', array_slice($names, 0, 3)) . (count($names) > 3 ? ' +' . (count($names) - 3) . ' more' : '');
+    $date_format = date('Y', strtotime($past_date)) == date('Y') ? 'M j' : 'M j, Y';
+    $past_workouts[] = array(
       'id' => $past_id,
-      'text' => date('M j, Y', strtotime($past_date))
-        . ($past_facility ? ' at ' . $past_facility : '') . ' (' . $past_sets . ($past_sets == 1 ? ' set)' : ' sets)'),
+      'type' => $past_type,
+      'text' => $past_type . ' · ' . date($date_format, strtotime($past_date)) . ' · ' . $exercises_text,
     );
   }
   $select_past->close();
@@ -95,20 +114,16 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
             <label for="template_id" class="form-label">Start from a past workout <span class="text-body-secondary">(optional)</span></label>
             <select class="form-select" id="template_id" name="template_id">
               <option value="">Blank workout</option>
-              <?php foreach ($past_workouts as $type_name => $type_workouts) { ?>
-                <optgroup label="<?php echo htmlspecialchars($type_name); ?>">
-                  <?php foreach ($type_workouts as $past) { ?>
-                    <option value="<?php echo $past['id']; ?>" data-type="<?php echo htmlspecialchars($type_name); ?>"<?php echo $selected_template == $past['id'] ? ' selected' : ''; ?>><?php echo htmlspecialchars($type_name . ' - ' . $past['text']); ?></option>
-                  <?php } ?>
-                </optgroup>
+              <?php foreach ($past_workouts as $past) { ?>
+                <option value="<?php echo $past['id']; ?>" data-type="<?php echo htmlspecialchars($past['type']); ?>"<?php echo $selected_template == $past['id'] ? ' selected' : ''; ?>><?php echo htmlspecialchars($past['text']); ?></option>
               <?php } ?>
             </select>
             <div class="form-text">Copies that workout's exercises and sets so you only change what's different.</div>
           </div>
           <div class="row g-3 mb-3">
             <div class="col-sm-6">
-              <label for="type_name" class="form-label">Type</label>
-              <input type="text" class="form-control" id="type_name" name="type_name" value="<?php echo old_value('type_name'); ?>" maxlength="50" list="type_list" placeholder="e.g. Push, Pull, Legs" autocomplete="off" required>
+              <label for="type_name" class="form-label">Name</label>
+              <input type="text" class="form-control" id="type_name" name="type_name" value="<?php echo old_value('type_name'); ?>" maxlength="50" list="type_list" placeholder="e.g. Push Day, Legs" autocomplete="off" required>
               <datalist id="type_list">
                 <?php foreach ($type_suggestions as $type_name) { ?>
                   <option value="<?php echo htmlspecialchars($type_name); ?>">

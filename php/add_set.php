@@ -5,6 +5,7 @@
 
 include_once (realpath(dirname(__FILE__).'/session.php'));
 include_once (realpath(dirname(__FILE__).'/csrf.php'));
+include_once (realpath(dirname(__FILE__).'/set_values.php'));
 
 /* Only standard users log workouts */
 if ($user_role != 2) {
@@ -22,18 +23,6 @@ function form_error($message) {
     $_SESSION['error'] = $message;
     header("location: " . $workout_url);
     exit();
-}
-
-/* Empty number fields become NULL, anything else must be a number in range */
-function number_or_null($field, $min, $max, $label) {
-    $value = trim($_POST[$field] ?? '');
-    if ($value === '') {
-        return null;
-    }
-    if (!is_numeric($value) || $value < $min || $value > $max) {
-        form_error($label . " must be a number between " . $min . " and " . $max . ".");
-    }
-    return $value;
 }
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
@@ -72,40 +61,17 @@ if (!$exercise_found) {
 }
 $_SESSION['last_exercise'] = $exercise_id;
 
-// Equipment is optional (the form fills in the exercise's usual one), but when chosen it has
-// to be built-in or one of this user's own that they haven't deleted
-$set_equipment = ($_POST['equipment_id'] ?? '') === '' ? null : (int) $_POST['equipment_id'];
-if ($set_equipment !== null) {
-    $check_equipment = $db_connection->prepare(
-        "SELECT equipment_id FROM Equipment
-        WHERE equipment_id = ? AND (user_id IS NULL OR user_id = ?) AND is_archived = 0");
-    $check_equipment->bind_param("ii", $set_equipment, $user_id);
-    $check_equipment->execute();
-    $check_equipment->store_result();
-    $equipment_found = $check_equipment->num_rows > 0;
-    $check_equipment->close();
-    if (!$equipment_found) {
-        form_error("Please choose equipment from the list.");
-    }
-}
+// Equipment is optional (the form fills in the exercise's usual one)
+$set_equipment = set_equipment_from_post($db_connection, $user_id);
 // Keep the machine picked for the next set of the same exercise
 $_SESSION['last_set'] = array('exercise_id' => $exercise_id, 'equipment_id' => $set_equipment ?? '');
 
 // Strength sets use weight/reps, cardio sets use duration/distance
-$weight_lbs = $reps = $set_duration = $distance_miles = null;
-if ($category == 'Strength') {
-    $weight_lbs = number_or_null('weight_lbs', 0, 2000, "Weight");
-    $reps = number_or_null('reps', 1, 1000, "Reps");
-    if ($reps === null || !ctype_digit($reps)) {
-        form_error("Please enter the number of reps as a whole number.");
-    }
-} else {
-    $set_duration = number_or_null('duration_minutes', 0, 1440, "Time");
-    $distance_miles = number_or_null('distance_miles', 0, 500, "Distance");
-    if ($set_duration === null && $distance_miles === null) {
-        form_error("Please enter a time, a distance, or both.");
-    }
-}
+$values = set_values_from_post($category);
+$weight_lbs = $values['weight_lbs'];
+$reps = $values['reps'];
+$set_duration = $values['duration_minutes'];
+$distance_miles = $values['distance_miles'];
 
 // Next set number for this exercise in this workout
 $select_number = $db_connection->prepare(

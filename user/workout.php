@@ -46,7 +46,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   /* Sets already logged for this workout */
   $select_sets = $db_connection->prepare(
     "SELECT s.set_id, s.set_number, s.weight_lbs, s.reps, s.duration_minutes, s.distance_miles,
-      s.exercise_id, e.exercise_name, e.category, eq.brand_name, eq.machine_type
+      s.exercise_id, s.equipment_id, e.exercise_name, e.category, eq.brand_name, eq.machine_type
     FROM Sets s
     INNER JOIN Exercises e ON s.exercise_id = e.exercise_id
     LEFT JOIN Equipment eq ON s.equipment_id = eq.equipment_id
@@ -56,6 +56,9 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   $select_sets->execute();
   $sets = $select_sets->get_result()->fetch_all(MYSQLI_ASSOC);
   $select_sets->close();
+
+  /* Set being edited in the sets table (workout.php?id=W&edit_set=S) */
+  $edit_set_id = (int) ($_GET['edit_set'] ?? 0);
 
   /* Exercises in this workout, for the remove-exercise buttons (exercise_id => name) */
   $workout_exercises = array();
@@ -322,14 +325,54 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
               </thead>
               <tbody>
                 <?php foreach ($sets as $set) { ?>
-                  <tr>
+                  <?php if ($set['set_id'] == $edit_set_id) { ?>
+                  <?php /* Edit this set: the inputs belong to the form in the last cell */ ?>
+                  <tr id="set-<?php echo $set['set_id']; ?>" class="table-active">
+                    <td>
+                      <?php echo htmlspecialchars($set['exercise_name']); ?>
+                      <select class="form-select form-select-sm mt-1" name="equipment_id" form="edit-set-form" aria-label="Equipment">
+                        <option value="">None / not sure</option>
+                        <?php if ($set['equipment_id'] !== null && !in_array($set['equipment_id'], array_column($equipment_list, 'equipment_id'))) { ?>
+                          <option value="<?php echo $set['equipment_id']; ?>" selected><?php echo htmlspecialchars(equipment_name($set['brand_name'], $set['machine_type'])); ?></option>
+                        <?php } ?>
+                        <?php foreach ($equipment_list as $item) { ?>
+                          <option value="<?php echo $item['equipment_id']; ?>"<?php echo $set['equipment_id'] == $item['equipment_id'] ? ' selected' : ''; ?>><?php echo htmlspecialchars(equipment_name($item['brand_name'], $item['machine_type'])); ?></option>
+                        <?php } ?>
+                      </select>
+                    </td>
+                    <td><?php echo $set['set_number']; ?></td>
+                    <td>
+                      <div class="d-flex gap-1 align-items-center">
+                        <?php if ($set['category'] == 'Strength') { ?>
+                          <input type="number" class="form-control form-control-sm" name="weight_lbs" value="<?php echo show_number($set['weight_lbs']); ?>" form="edit-set-form" min="0" max="2000" step="0.5" placeholder="Bodyweight" aria-label="Weight (lbs)">
+                          <span class="text-body-secondary">&times;</span>
+                          <input type="number" class="form-control form-control-sm" name="reps" value="<?php echo $set['reps']; ?>" form="edit-set-form" min="1" max="1000" aria-label="Reps" required>
+                        <?php } else { ?>
+                          <input type="number" class="form-control form-control-sm" name="duration_minutes" value="<?php echo show_number($set['duration_minutes']); ?>" form="edit-set-form" min="0" max="1440" step="0.1" placeholder="min" aria-label="Time (min)">
+                          <input type="number" class="form-control form-control-sm" name="distance_miles" value="<?php echo show_number($set['distance_miles']); ?>" form="edit-set-form" min="0" max="500" step="0.01" placeholder="mi" aria-label="Distance (mi)">
+                        <?php } ?>
+                      </div>
+                    </td>
+                    <td class="text-end text-nowrap">
+                      <form id="edit-set-form" action="<?php echo SRC_PATH; ?>/update_set.php" method="post" class="d-inline">
+                        <input type="hidden" name="workout_id" value="<?php echo $workout_id; ?>">
+                        <input type="hidden" name="set_id" value="<?php echo $set['set_id']; ?>">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit" class="btn btn-sm btn-primary" aria-label="Save set"><i class="bi bi-check-lg"></i></button>
+                      </form>
+                      <a href="?id=<?php echo $workout_id; ?>#set-<?php echo $set['set_id']; ?>" class="btn btn-sm btn-outline-secondary" aria-label="Cancel"><i class="bi bi-x-lg"></i></a>
+                    </td>
+                  </tr>
+                  <?php } else { ?>
+                  <tr id="set-<?php echo $set['set_id']; ?>">
                     <td>
                       <?php echo htmlspecialchars($set['exercise_name']); ?>
                       <?php if ($set['machine_type'] !== null) { ?><span class="small text-body-secondary d-block"><?php echo htmlspecialchars(equipment_name($set['brand_name'], $set['machine_type'])); ?></span><?php } ?>
                     </td>
                     <td><?php echo $set['set_number']; ?></td>
                     <td><?php echo show_set_result($set); ?></td>
-                    <td class="text-end">
+                    <td class="text-end text-nowrap">
+                      <a href="?id=<?php echo $workout_id; ?>&amp;edit_set=<?php echo $set['set_id']; ?>#set-<?php echo $set['set_id']; ?>" class="btn btn-sm btn-outline-secondary" aria-label="Edit set"><i class="bi bi-pencil"></i></a>
                       <form action="<?php echo SRC_PATH; ?>/delete_set.php" method="post" class="d-inline">
                         <input type="hidden" name="set_id" value="<?php echo $set['set_id']; ?>">
                         <?php echo csrf_field(); ?>
@@ -337,6 +380,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
                       </form>
                     </td>
                   </tr>
+                  <?php } ?>
                 <?php } ?>
               </tbody>
             </table></div>
